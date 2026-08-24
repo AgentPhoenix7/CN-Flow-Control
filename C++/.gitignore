@@ -1,0 +1,21 @@
+# C++ compiler and linker output
+/build/*
+!/build/.gitkeep
+*.o
+*.obj
+*.d
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+
+# Coverage and profiling output
+*.gcda
+*.gcno
+*.gcov
+gmon.out
+
+# Files reconstructed by transfer and experiment runs
+/output_files/*
+!/output_files/.gitkeep

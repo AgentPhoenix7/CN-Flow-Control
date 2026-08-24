@@ -1,0 +1,17 @@
+[project]
+name = "cn-flow-control"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Anis Mandal", email = "83820979+AgentPhoenix7@users.noreply.github.com" }
+]
+requires-python = ">=3.13"
+dependencies = []
+
+[project.scripts]
+cn-flow-control = "cn_flow_control:main"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"

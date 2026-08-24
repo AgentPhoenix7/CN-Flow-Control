@@ -1,0 +1,14 @@
+# Python environment and caches
+/.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Python build and coverage artifacts
+/build/
+/dist/
+*.egg-info/
+.coverage
+/htmlcov/
