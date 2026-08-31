@@ -57,6 +57,7 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - Added canonical protected-frame serialization and verification for the 15-byte header and all five FCS schemes, including scheme-dependent padding and CRC-10 left alignment.
 - Added typed CONFIG, DATA, ACK, round-boundary, and completion records with type-specific validation and detectable ACK corruption.
 - Added a deterministic application-layer channel with independent drop, excessive-delay, and corruption decisions plus separate selection/bit RNG state.
+- Added an adaptive SRTT/RTTVAR timeout estimator with 10--2000 ms clamps and Karn's rule for retransmitted frames.
 
 ## Current Repository State
 
@@ -70,15 +71,16 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - `C++/include/frame.hpp` and `C++/src/frame.cpp` manually serialize fields, zero-pad, compute/encode FCS values, reject malformed or corrupted frames, and return only verified unpadded payloads.
 - `C++/include/record.hpp` and `C++/src/record.cpp` encode internal record bytes independently of the external TCP prefix, validate DATA sizes and marker bodies, protect ACKs with a complement byte, and serialize fixed-width session configuration.
 - `C++/include/channel.hpp` and `C++/src/channel.cpp` return explicit clean/dropped/delayed/corrupted outcomes and never expose bytes for suppressed transmissions.
+- `C++/include/timer.hpp` and `C++/src/timer.cpp` start at 100 ms, update timeout as `SRTT + 4*RTTVAR`, and ignore ambiguous retransmitted samples.
 - The root and `C++/` `.gitignore` files contain verified project-specific rules.
 - `C++/include/checksum.hpp` declares Checksum-16 computation and verification; `C++/src/checksum.cpp` implements both operations, and `C++/tests/test_checksum.cpp` covers three computation cases plus valid, corrupted-payload, corrupted-checksum, and empty-input verification.
-- Timer/metrics/socket, ARQ, applications, tools, and the report remain empty placeholders.
+- Metrics/socket, ARQ, applications, tools, and the report remain empty placeholders.
 - The root `pyproject.toml` and `uv.lock` describe an unpackaged virtual project, no root `src/` package tree remains, and `.venv` is synchronized.
 - No sender/receiver executables are linked; all seven focused Checksum-16 cases pass, but CRC and the remaining project test suite do not exist yet.
 
 ## Current Exact Step
 
-Frames, records, and channel simulation are GREEN. The immediate next step is to test the initial adaptive timeout, EWMA updates, clamps, and Karn-rule rejection of retransmitted RTT samples before implementing the timeout estimator.
+Channel and adaptive timeout simulation are GREEN. The immediate next step is to define metrics counters, efficiency/goodput denominators, and stable machine-readable serialization through focused tests.
 
 ## Recommended Implementation Order
 
@@ -128,7 +130,8 @@ Frames, records, and channel simulation are GREEN. The immediate next step is to
 - Mutating the maximum-payload comparison to reject 1499 bytes made the boundary test abort nonzero; restoring the comparison made the target pass.
 - `test_record` first failed to compile because its API was absent, then passed four groups: typed round trips, ACK complement integrity, CONFIG round trip, and malformed rejection.
 - `test_channel` first failed to compile because its API was absent, then passed forced outcomes, reproducible corruption, empty corruption handling, and invalid probability rejection.
-- The current full `make -C C++ test` exits 0 for configuration plus 33 printed unit-test groups, and `make -C C++ all` compiles all implemented translation units with strict warnings.
+- `test_timer` first failed to compile because its API was absent, then passed initial/first sample, EWMA update, clamp, Karn-rule, and invalid-sample behavior in four groups.
+- The current full `make -C C++ test` exits 0 for configuration plus 37 printed unit-test groups, and `make -C C++ all` compiles all implemented translation units with strict warnings.
 
 ## How to Update This File
 
