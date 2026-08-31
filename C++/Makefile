@@ -33,11 +33,23 @@ GO_BACK_N_TEST_SOURCES := src/go_back_n.cpp tests/test_go_back_n.cpp
 SELECTIVE_REPEAT_TEST := $(BUILD_DIR)/test_selective_repeat
 SELECTIVE_REPEAT_TEST_SOURCES := src/selective_repeat.cpp tests/test_selective_repeat.cpp
 
-.PHONY: all test check_config_header test_checksum test_crc test_error_injection test_frame test_record test_channel test_timer test_metrics test_socket test_stop_and_wait test_go_back_n test_selective_repeat clean
+APPLICATION_SOURCES := src/channel.cpp src/checksum.cpp src/crc.cpp \
+	src/error_injection.cpp src/frame.cpp src/go_back_n.cpp src/metrics.cpp \
+	src/record.cpp src/selective_repeat.cpp src/session.cpp src/socket.cpp \
+	src/stop_and_wait.cpp src/timer.cpp
+SENDER := $(BUILD_DIR)/sender
+SENDER_SOURCES := $(APPLICATION_SOURCES) src/sender_main.cpp
+RECEIVER := $(BUILD_DIR)/receiver
+RECEIVER_SOURCES := $(APPLICATION_SOURCES) src/receiver_main.cpp
+END_TO_END_TEST := tests/test_end_to_end.py
 
-all: $(OBJECTS)
+.PHONY: all test check_config_header test_checksum test_crc test_error_injection test_frame test_record test_channel test_timer test_metrics test_socket test_stop_and_wait test_go_back_n test_selective_repeat test_end_to_end applications clean
 
-test: check_config_header test_checksum test_crc test_error_injection test_frame test_record test_channel test_timer test_metrics test_socket test_stop_and_wait test_go_back_n test_selective_repeat
+all: $(OBJECTS) applications
+
+applications: $(SENDER) $(RECEIVER)
+
+test: check_config_header test_checksum test_crc test_error_injection test_frame test_record test_channel test_timer test_metrics test_socket test_stop_and_wait test_go_back_n test_selective_repeat test_end_to_end
 
 check_config_header: $(CONFIG_TEST)
 	./$(CONFIG_TEST)
@@ -78,6 +90,9 @@ test_go_back_n: $(GO_BACK_N_TEST)
 test_selective_repeat: $(SELECTIVE_REPEAT_TEST)
 	./$(SELECTIVE_REPEAT_TEST)
 
+test_end_to_end: $(SENDER) $(RECEIVER)
+	uv run python $(END_TO_END_TEST)
+
 $(CHECKSUM_TEST): $(CHECKSUM_TEST_SOURCES) include/checksum.hpp | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CHECKSUM_TEST_SOURCES) -o $@
 
@@ -117,6 +132,12 @@ $(GO_BACK_N_TEST): $(GO_BACK_N_TEST_SOURCES) include/go_back_n.hpp include/proto
 $(SELECTIVE_REPEAT_TEST): $(SELECTIVE_REPEAT_TEST_SOURCES) include/selective_repeat.hpp include/protocol.hpp | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(SELECTIVE_REPEAT_TEST_SOURCES) -o $@
 
+$(SENDER): $(SENDER_SOURCES) $(wildcard include/*.hpp) | $(BUILD_DIR)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(SENDER_SOURCES) -o $@
+
+$(RECEIVER): $(RECEIVER_SOURCES) $(wildcard include/*.hpp) | $(BUILD_DIR)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(RECEIVER_SOURCES) -o $@
+
 $(BUILD_DIR)/%.o: src/%.cpp | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
@@ -124,4 +145,4 @@ $(BUILD_DIR):
 	mkdir -p $@
 
 clean:
-	rm -f $(OBJECTS) $(CHECKSUM_TEST) $(CONFIG_TEST) $(CRC_TEST) $(ERROR_INJECTION_TEST) $(FRAME_TEST) $(RECORD_TEST) $(CHANNEL_TEST) $(TIMER_TEST) $(METRICS_TEST) $(SOCKET_TEST) $(STOP_AND_WAIT_TEST) $(GO_BACK_N_TEST) $(SELECTIVE_REPEAT_TEST)
+	rm -f $(OBJECTS) $(CHECKSUM_TEST) $(CONFIG_TEST) $(CRC_TEST) $(ERROR_INJECTION_TEST) $(FRAME_TEST) $(RECORD_TEST) $(CHANNEL_TEST) $(TIMER_TEST) $(METRICS_TEST) $(SOCKET_TEST) $(STOP_AND_WAIT_TEST) $(GO_BACK_N_TEST) $(SELECTIVE_REPEAT_TEST) $(SENDER) $(RECEIVER)
