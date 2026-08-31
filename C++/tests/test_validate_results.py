@@ -35,10 +35,17 @@ class ValidatorError(AssertionError):
     """Raised when the validator accepts bad data or rejects good data."""
 
 
-def synthetic_metrics(run: runner.ExperimentRun) -> dict[str, float]:
-    """Builds one internally consistent metrics dictionary for a run."""
+def synthetic_metrics(
+    run: runner.ExperimentRun, extra_retransmissions: int = 0
+) -> dict[str, float]:
+    """Builds one internally consistent metrics dictionary for a run.
+
+    ``extra_retransmissions`` lets a caller push one run, or one impairment
+    path, off the shared curve while keeping every identity intact, which is how
+    the report tests build a fixture whose impairment paths differ.
+    """
     # Impairment scales retransmissions so the fixture looks like real data.
-    retransmissions = int(round(run.probability * 100))
+    retransmissions = int(round(run.probability * 100)) + extra_retransmissions
     transmissions = FRAME_COUNT + retransmissions
     transmitted = transmissions * FRAME_BYTES
     completion = 90 + retransmissions * 10
@@ -63,10 +70,15 @@ def synthetic_metrics(run: runner.ExperimentRun) -> dict[str, float]:
     }
 
 
-def synthetic_rows() -> list[list[str]]:
-    """Builds a complete, internally consistent synthetic result set."""
+def synthetic_rows(extra=None) -> list[list[str]]:
+    """Builds a complete, internally consistent synthetic result set.
+
+    ``extra`` is an optional ``run -> int`` callable adding retransmissions to
+    selected runs, so a caller can make one impairment path diverge from the
+    others without breaking any identity.
+    """
     return [
-        runner.result_row(run, synthetic_metrics(run))
+        runner.result_row(run, synthetic_metrics(run, 0 if extra is None else extra(run)))
         for run in runner.build_matrix(input_bytes=INPUT_BYTES)
     ]
 

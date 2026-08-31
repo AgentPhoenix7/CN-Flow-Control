@@ -34,6 +34,7 @@ from plot_results import (  # noqa: E402 - path is configured above
 )
 from run_experiments import (  # noqa: E402 - path is configured above
     IMPAIRMENTS,
+    METRICS_COLUMNS,
     PROBABILITIES,
     PROTOCOLS,
 )
@@ -260,6 +261,105 @@ def identical_series(
     )
 
 
+def identical_paths(
+    rows: list[dict[str, str]], first: str, second: str
+) -> bool:
+    """Reports whether two impairment sweeps produced identical rows throughout.
+
+    Compares every metrics column of every protocol at every probability level.
+    Two sweeps that agree on all of them are indistinguishable in the results,
+    which means their figures are duplicates and the reader must be told.
+    """
+    return all(
+        find(rows, protocol, first, f"{probability:.1f}")[column]
+        == find(rows, protocol, second, f"{probability:.1f}")[column]
+        for protocol in PROTOCOLS
+        for probability in PROBABILITIES
+        for column in METRICS_COLUMNS
+    )
+
+
+def coincident_paths(rows: list[dict[str, str]]) -> list[tuple[str, str]]:
+    """Returns every pair of impairment paths whose result sets are identical."""
+    return [
+        (first, second)
+        for index, first in enumerate(IMPAIRMENTS)
+        for second in IMPAIRMENTS[index + 1 :]
+        if identical_paths(rows, first, second)
+    ]
+
+
+def path_coincidence_reason(first: str, second: str) -> str:
+    """Explains why two sweeps coincide, based on which side of the link they hit.
+
+    Both explanations share one cause -- the channel's decision stream -- but the
+    mechanism that makes corruption and suppression indistinguishable differs
+    between the DATA path, where the receiver is the one that gives up on the
+    frame, and the ACK path, where the sender is.
+    """
+    if first.startswith("data") and second.startswith("data"):
+        return (
+            "The receiver discards a DATA frame that fails its FCS check without "
+            "acknowledging it, which is exactly what it does with a frame that "
+            "never arrived, and the sender counts a frame's wire bytes when it "
+            "transmits the frame, before the channel decides its fate. A "
+            "corrupted DATA frame and an excessively delayed one are therefore "
+            "indistinguishable in every metric the sender records."
+        )
+    if first.startswith("ack") and second.startswith("ack"):
+        return (
+            "The sender rejects an acknowledgment whose body fails its complement "
+            "check and discards it, which is exactly what happens to an "
+            "acknowledgment that never arrived: the window does not move either "
+            "way, and the round is a timeout either way. A corrupted "
+            "acknowledgment and an excessively delayed one are therefore "
+            "indistinguishable in every metric the sender records."
+        )
+    return (
+        "Neither sweep leaves a trace the other does not, so no metric the sender "
+        "records separates them."
+    )
+
+
+def render_path_coincidences(rows: list[dict[str, str]]) -> list[str]:
+    """Builds the coincident-sweep disclosure from what the data actually shows."""
+    pairs = coincident_paths(rows)
+    if not pairs:
+        return [
+            "Each of the four impairment sweeps produces a distinct result set: "
+            "no two paths agree on every metric at every level, so none of the "
+            "figures duplicate one another."
+        ]
+
+    row_pairs = len(PROTOCOLS) * len(PROBABILITIES)
+    figures = len(PLOTTED_METRICS)
+    bullets = "\n".join(
+        f"- `{first}` and `{second}` — {IMPAIRMENT_TITLES[first]} and "
+        f"{IMPAIRMENT_TITLES[second]}. {path_coincidence_reason(first, second)}"
+        for first, second in pairs
+    )
+    paragraphs = [
+        f"**{len(pairs)} pair(s) of impairment sweeps coincide exactly.** The "
+        "following pairs agree on every metric, for every protocol, at every "
+        f"probability level (all {row_pairs} row pairs each), which means the "
+        f"{figures} figures for one path are duplicates of the {figures} for the "
+        "other:",
+        bullets,
+    ]
+    paragraphs.append(
+        "This is expected rather than a defect, and it has a second cause on top "
+        "of the mechanisms above. The channel draws from one pseudo-random "
+        "stream per path and consumes no draw at all for a probability of "
+        "exactly 0.0, so in this one-factor-at-a-time design the swept dimension "
+        "is the only one drawing. Two sweeps of the same path at the same "
+        "probability therefore land on exactly the same transmissions, and not "
+        "merely on a statistically similar number of them. That makes the "
+        "comparison maximally fair, at the cost of the two sweeps carrying no "
+        "independent information."
+    )
+    return paragraphs
+
+
 def names_of(protocols: list[str]) -> str:
     """Joins protocol titles into readable English."""
     titles = [PROTOCOL_TITLES[protocol] for protocol in protocols]
@@ -296,15 +396,22 @@ def render_observations(rows: list[dict[str, str]]) -> str:
                 for row in worst
             ],
         )
-        sections.append(f"At the hardest level tested, probability 0.5:")
+        sections.append("At the hardest level tested, probability 0.5:")
         sections.append("")
         sections.append(table)
         sections.append("")
 
         best_time = min(int(row["completion_ms"]) for row in worst)
         fastest = [row for row in worst if int(row["completion_ms"]) == best_time]
-        best_efficiency = max(row["efficiency"] for row in worst)
-        leanest = [row for row in worst if row["efficiency"] == best_efficiency]
+        # Compared numerically, not lexicographically: the sender's fixed-width
+        # formatting happens to make string order agree here, but relying on
+        # that would be an accident waiting to break.
+        best_efficiency = max((row["efficiency"] for row in worst), key=float)
+        leanest = [
+            row
+            for row in worst
+            if float(row["efficiency"]) == float(best_efficiency)
+        ]
         slowdown = best_time / int(
             find(rows, fastest[0]["protocol"], "none", "0.0")["completion_ms"]
         )
@@ -370,18 +477,9 @@ def render_observations(rows: list[dict[str, str]]) -> str:
         "retransmits only what was actually missed and tracks Stop-and-Wait's "
         "retransmission count exactly, at a fraction of its completion time."
     )
-    sections.append("")
-    sections.append(
-        "A corrupted DATA frame and an excessively delayed DATA frame are "
-        "indistinguishable in these metrics, and the two sweeps produce "
-        "identical rows. That is expected rather than a defect: the receiver "
-        "discards a frame that fails its FCS check without acknowledging it, "
-        "which is exactly what it does with a frame that never arrived, and the "
-        "sender counts a frame's wire bytes when it transmits the frame, before "
-        "the channel decides its fate. With the impairment probability applied "
-        "to the same channel decision stream in both sweeps, the same "
-        "transmissions are affected in both."
-    )
+    for paragraph in render_path_coincidences(rows):
+        sections.append("")
+        sections.append(paragraph)
 
     return "\n".join(sections).rstrip()
 

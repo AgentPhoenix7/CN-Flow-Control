@@ -205,6 +205,78 @@ def main() -> int:
             reports_flagged_runs,
         )
 
+        def discloses_every_coincident_impairment_path() -> None:
+            # In this fixture the metrics depend only on probability, so all
+            # four sweeps coincide and all six pairs must be disclosed -- not
+            # just the DATA pair.
+            pairs = reporter.coincident_paths(records)
+            expected = [
+                (first, second)
+                for index, first in enumerate(runner.IMPAIRMENTS)
+                for second in runner.IMPAIRMENTS[index + 1 :]
+            ]
+            if pairs != expected:
+                raise ReportError(f"detected {pairs}, expected every pair {expected}")
+            for first, second in expected:
+                if f"`{first}` and `{second}`" not in report:
+                    raise ReportError(f"the report never discloses {first}/{second}")
+            if "duplicates of the" not in report:
+                raise ReportError("the report does not say the figures are duplicates")
+
+        suite.case(
+            "the report discloses every coincident impairment-path pair",
+            discloses_every_coincident_impairment_path,
+        )
+
+        def discloses_both_data_and_ack_coincidences() -> None:
+            # The DATA and the ACK coincidence have different mechanisms, and
+            # disclosing only one of them was the review finding this covers.
+            for path in ("data-error", "data-delay", "ack-error", "ack-delay"):
+                if f"`{path}`" not in report:
+                    raise ReportError(f"{path} is never named in the disclosure")
+            if "fails its FCS check without" not in report:
+                raise ReportError("the DATA-path mechanism is not explained")
+            if "complement" not in report:
+                raise ReportError("the ACK-path mechanism is not explained")
+
+        suite.case(
+            "both the DATA-path and the ACK-path coincidence are explained",
+            discloses_both_data_and_ack_coincidences,
+        )
+
+        def claims_no_coincidence_that_the_data_does_not_show() -> None:
+            # Push data-delay off the shared curve; data-error/data-delay must
+            # then no longer be reported as coincident, while ack-error and
+            # ack-delay still must be.
+            distinct = synthetic_rows(
+                extra=lambda run: 1 if run.impairment == "data-delay" else 0
+            )
+            distinct_records = [
+                dict(zip(runner.EXPERIMENT_COLUMNS, row)) for row in distinct
+            ]
+            pairs = reporter.coincident_paths(distinct_records)
+            if ("data-error", "data-delay") in pairs:
+                raise ReportError("diverging sweeps were still reported as identical")
+            if ("ack-error", "ack-delay") not in pairs:
+                raise ReportError("the ACK pair stopped being detected")
+
+            source = directory / "distinct.csv"
+            target = directory / "distinct_report.md"
+            write_csv(source, distinct)
+            result = run_reporter(source, target)
+            if result.returncode != 0:
+                raise ReportError(f"a valid diverging result set was refused: {result.stderr}")
+            text = target.read_text(encoding="utf-8")
+            if "`data-error` and `data-delay`" in text:
+                raise ReportError("the report claims a coincidence the data does not show")
+            if "`ack-error` and `ack-delay`" not in text:
+                raise ReportError("the report dropped the ACK coincidence it should keep")
+
+        suite.case(
+            "the disclosure follows the data rather than a fixed string",
+            claims_no_coincidence_that_the_data_does_not_show,
+        )
+
         def rendering_is_deterministic() -> None:
             again = directory / "report_again.md"
             if run_reporter(source, again).returncode != 0:
