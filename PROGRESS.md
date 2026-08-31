@@ -1,6 +1,6 @@
 # Project Progress and Conversation Handoff
 
-Last updated: **24 August 2026**
+Last updated: **31 August 2026**
 
 ## How to Resume in a New Conversation
 
@@ -45,26 +45,28 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - Removed the duplicate `src/assignment_2/` placeholder package.
 - Converted the root uv metadata and lockfile from an installable package to a virtual dependency environment with no console entry point or build backend.
 - Removed the remaining `src/` package tree and synchronized `.venv`, uninstalling the former editable package.
+- Completed `C++/README.md` with the framing, FCS, TCP-record, and ARQ protocol contracts.
+- Added the initial strict C++17 Makefile, compiling all 14 source translation units with `-Wall -Wextra -Wpedantic -Werror`.
 
 ## Current Repository State
 
 - `AGENTS.md` contains the contributor and architecture guide.
 - `PROGRESS.md` is now the conversation-handoff file.
-- The `C++/` scaffold contains 56 placeholder files, all currently empty.
+- `C++/README.md` documents the confirmed wire format and protocol behavior.
+- `C++/Makefile` compiles every current source file into ignored object files under `C++/build/`.
 - The root and `C++/` `.gitignore` files contain verified project-specific rules.
-- `C++/Makefile`, `C++/README.md`, and `C++/report/report_template.md` still need real content.
-- No C++ declarations, implementations, tests, fixtures, experiment logic, plots, or report results exist yet.
+- The C++ headers, sources, tests, tools, and report template remain empty placeholders.
 - The root `pyproject.toml` and `uv.lock` describe an unpackaged virtual project, no root `src/` package tree remains, and `.venv` is synchronized.
-- The scaffold and assignment artifacts are currently untracked relative to the initial Git commit.
+- Git is clean and synchronized with `origin/main` at commit `7d386eb` before this handoff update.
+- No executables are linked and no project tests exist yet; successful object compilation does not prove protocol behavior.
 
 ## Current Exact Step
 
-The structure audit, handoff documentation, ignore rules, and unpackaged uv environment are complete. The immediate next step is to finish repository metadata before writing protocol code:
+The README and strict object-build scaffold are complete. The immediate next step is to inspect the reused Assignment 1 checksum behavior, then begin Checksum-16 test-first:
 
-1. write the initial `C++/README.md` and strict C++17 `Makefile`; and
-2. verify an intentionally minimal build/test target.
-
-After that, begin the first implementation module in a test-first, guided step.
+1. define the smallest desired checksum API through `test_checksum.cpp`;
+2. add a focused `test_checksum` Make target; and
+3. run it to confirm the expected failing test before implementing checksum code.
 
 ## Recommended Implementation Order
 
@@ -89,10 +91,12 @@ After that, begin the first implementation module in a test-first, guided step.
 - `uv 0.12.5` is installed, and `uv help init` documents that `--no-package` creates a non-importable flat project with no `[build-system]` table.
 - `git check-ignore -v .venv/pyvenv.cfg C++/build/example.o C++/output_files/received.bin` confirms that the root virtual environment, C++ build artifacts, and reconstructed output files are ignored.
 - `git check-ignore -v C++/build/.gitkeep C++/output_files/.gitkeep` confirms that the placeholder files are explicitly preserved.
-- `make -C 'C++' all` currently fails with `No rule to make target 'all'` because the placeholder Makefile is empty.
+- `make -C 'C++' all` successfully compiled all 14 source translation units using `g++`, C++17, and strict warning flags with no warnings or errors.
 - No project tests can run yet; do not report a passing build or test count.
 
 ## How to Update This File
+
+The coding assistant owns updates to this file; do not ask the user to edit it.
 
 After each meaningful milestone:
 
