@@ -119,6 +119,26 @@ int test_corrupted_payload_rejection()
   return 0;
 }
 
+int test_corrupted_checksum_rejection()
+{
+  const std::vector<std::uint8_t> data{
+    0x00U, 0x01U, 0xF2U, 0x03U,
+    0xF4U, 0xF5U, 0xF6U, 0xF7U
+  };
+  constexpr std::uint16_t corrupted_checksum = 0x220CU;
+
+  if (flow_control::checksum16_verify(
+        data,
+        corrupted_checksum
+      )) {
+    std::cerr << "FAIL: corrupted checksum was accepted\n";
+    return 1;
+  }
+
+  std::cout << "PASS: corrupted-checksum rejection\n";
+  return 0;
+}
+
 }  // namespace
 
 int main()
@@ -130,6 +150,7 @@ int main()
   failures += test_empty_input_checksum();
   failures += test_valid_checksum_verification();
   failures += test_corrupted_payload_rejection();
+  failures += test_corrupted_checksum_rejection();
 
   return failures == 0 ? 0 : 1;
 }
