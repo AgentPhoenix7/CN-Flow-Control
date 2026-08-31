@@ -37,4 +37,20 @@ std::uint16_t checksum16_compute(
   return static_cast<std::uint16_t>(~sum);
 }
 
+bool checksum16_verify(
+  const std::vector<std::uint8_t>& data,
+  std::uint16_t received_checksum
+)
+{
+  constexpr std::uint32_t WORD_MASK = 0xFFFFU;
+  std::uint32_t sum = static_cast<std::uint16_t>(
+    ~checksum16_compute(data)
+  );
+
+  sum += received_checksum;
+  sum = (sum & WORD_MASK) + (sum >> 16U);
+
+  return sum == WORD_MASK;
+}
+
 }  // namespace flow_control
