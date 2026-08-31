@@ -54,6 +54,7 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - Added compile-time frame/FCS configuration constants and a strict header contract target.
 - Ported the generic MSB-first CRC engine with CRC-8/10/16/32 parameters, verification, known vectors, empty input, corruption rejection, and invalid-parameter checks.
 - Added deterministic MSB-indexed bit/burst mutation, atomic range validation, a reproducible LCG, probability selection, and independently owned RNG state.
+- Added canonical protected-frame serialization and verification for the 15-byte header and all five FCS schemes, including scheme-dependent padding and CRC-10 left alignment.
 
 ## Current Repository State
 
@@ -64,15 +65,16 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - `C++/include/config.hpp` owns the 15-byte header, 64–1518-byte frame, FCS-size, 1499-byte maximum-payload, and 46-byte default-payload constants; `check_config_header` enforces them at compile time.
 - `C++/include/crc.hpp` and `C++/src/crc.cpp` provide generic widths 1–32 and the four required parameter sets; `test_crc` covers five behavioral groups.
 - `C++/include/error_injection.hpp` and `C++/src/error_injection.cpp` provide deterministic channel primitives; `test_error_injection` covers five behavioral groups.
+- `C++/include/frame.hpp` and `C++/src/frame.cpp` manually serialize fields, zero-pad, compute/encode FCS values, reject malformed or corrupted frames, and return only verified unpadded payloads.
 - The root and `C++/` `.gitignore` files contain verified project-specific rules.
 - `C++/include/checksum.hpp` declares Checksum-16 computation and verification; `C++/src/checksum.cpp` implements both operations, and `C++/tests/test_checksum.cpp` covers three computation cases plus valid, corrupted-payload, corrupted-checksum, and empty-input verification.
-- Framing, records, channel/timer/metrics/socket, ARQ, applications, tools, and the report remain empty placeholders.
+- Records, channel/timer/metrics/socket, ARQ, applications, tools, and the report remain empty placeholders.
 - The root `pyproject.toml` and `uv.lock` describe an unpackaged virtual project, no root `src/` package tree remains, and `.venv` is synchronized.
 - No sender/receiver executables are linked; all seven focused Checksum-16 cases pass, but CRC and the remaining project test suite do not exist yet.
 
 ## Current Exact Step
 
-Configuration and all reusable error-detection/injection primitives are GREEN. The immediate next step is to add protected-frame serialization and verification tests covering the 15-byte header, FCS-specific padding, all five schemes, malformed frames, corruption, CRC-10 alignment, and short final payloads.
+Protected frames and the reusable error primitives are GREEN. The immediate next step is to add typed application-record round-trip and malformed type/length/body tests before implementing CONFIG, DATA, ACK, round-boundary, and completion records.
 
 ## Recommended Implementation Order
 
@@ -118,7 +120,9 @@ Configuration and all reusable error-detection/injection primitives are GREEN. T
 - `timeout 30s env -u MAKEFLAGS -u MFLAGS /usr/bin/make -C C++ test` exited 0 for configuration, seven checksum cases, and five CRC groups.
 - `timeout 30s env -u MAKEFLAGS -u MFLAGS /usr/bin/make -C C++ all` compiled the CRC translation unit with strict warnings and exited 0.
 - `test_error_injection` first failed to compile because its API was absent, then passed five groups after implementation: MSB bit flips, atomic bursts, reproducible RNG, probability selection, and independent RNG state.
-- The current full `make -C C++ test` target exits 0 for configuration plus 17 printed checksum/CRC/error-injection cases; this is not yet the final project suite.
+- `test_frame` first failed to compile because its API was absent, then passed eight groups: manual header layout, scheme padding, all-FCS round trips, malformed/corruption rejection, CRC-10 alignment, short final payload, invalid serialization, and the 1499-byte CRC-32 boundary.
+- Mutating the maximum-payload comparison to reject 1499 bytes made the boundary test abort nonzero; restoring the comparison made the target pass.
+- The current full `make -C C++ test` exits 0 for configuration plus 25 printed unit-test groups, and `make -C C++ all` compiles the frame translation unit with strict warnings.
 
 ## How to Update This File
 

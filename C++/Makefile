@@ -14,12 +14,14 @@ CRC_TEST := $(BUILD_DIR)/test_crc
 CRC_TEST_SOURCES := src/crc.cpp tests/test_crc.cpp
 ERROR_INJECTION_TEST := $(BUILD_DIR)/test_error_injection
 ERROR_INJECTION_TEST_SOURCES := src/error_injection.cpp tests/test_error_injection.cpp
+FRAME_TEST := $(BUILD_DIR)/test_frame
+FRAME_TEST_SOURCES := src/checksum.cpp src/crc.cpp src/frame.cpp tests/test_frame.cpp
 
-.PHONY: all test check_config_header test_checksum test_crc test_error_injection clean
+.PHONY: all test check_config_header test_checksum test_crc test_error_injection test_frame clean
 
 all: $(OBJECTS)
 
-test: check_config_header test_checksum test_crc test_error_injection
+test: check_config_header test_checksum test_crc test_error_injection test_frame
 
 check_config_header: $(CONFIG_TEST)
 	./$(CONFIG_TEST)
@@ -33,6 +35,9 @@ test_crc: $(CRC_TEST)
 test_error_injection: $(ERROR_INJECTION_TEST)
 	./$(ERROR_INJECTION_TEST)
 
+test_frame: $(FRAME_TEST)
+	./$(FRAME_TEST)
+
 $(CHECKSUM_TEST): $(CHECKSUM_TEST_SOURCES) include/checksum.hpp | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CHECKSUM_TEST_SOURCES) -o $@
 
@@ -45,6 +50,9 @@ $(CRC_TEST): $(CRC_TEST_SOURCES) include/crc.hpp | $(BUILD_DIR)
 $(ERROR_INJECTION_TEST): $(ERROR_INJECTION_TEST_SOURCES) include/error_injection.hpp | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(ERROR_INJECTION_TEST_SOURCES) -o $@
 
+$(FRAME_TEST): $(FRAME_TEST_SOURCES) include/frame.hpp include/config.hpp include/checksum.hpp include/crc.hpp | $(BUILD_DIR)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(FRAME_TEST_SOURCES) -o $@
+
 $(BUILD_DIR)/%.o: src/%.cpp | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
@@ -52,4 +60,4 @@ $(BUILD_DIR):
 	mkdir -p $@
 
 clean:
-	rm -f $(OBJECTS) $(CHECKSUM_TEST) $(CONFIG_TEST) $(CRC_TEST) $(ERROR_INJECTION_TEST)
+	rm -f $(OBJECTS) $(CHECKSUM_TEST) $(CONFIG_TEST) $(CRC_TEST) $(ERROR_INJECTION_TEST) $(FRAME_TEST)
