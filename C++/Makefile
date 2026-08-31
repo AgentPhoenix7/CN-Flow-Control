@@ -28,12 +28,16 @@ SOCKET_TEST := $(BUILD_DIR)/test_socket
 SOCKET_TEST_SOURCES := src/record.cpp src/socket.cpp tests/test_socket.cpp
 STOP_AND_WAIT_TEST := $(BUILD_DIR)/test_stop_and_wait
 STOP_AND_WAIT_TEST_SOURCES := src/stop_and_wait.cpp tests/test_stop_and_wait.cpp
+GO_BACK_N_TEST := $(BUILD_DIR)/test_go_back_n
+GO_BACK_N_TEST_SOURCES := src/go_back_n.cpp tests/test_go_back_n.cpp
+SELECTIVE_REPEAT_TEST := $(BUILD_DIR)/test_selective_repeat
+SELECTIVE_REPEAT_TEST_SOURCES := src/selective_repeat.cpp tests/test_selective_repeat.cpp
 
-.PHONY: all test check_config_header test_checksum test_crc test_error_injection test_frame test_record test_channel test_timer test_metrics test_socket test_stop_and_wait clean
+.PHONY: all test check_config_header test_checksum test_crc test_error_injection test_frame test_record test_channel test_timer test_metrics test_socket test_stop_and_wait test_go_back_n test_selective_repeat clean
 
 all: $(OBJECTS)
 
-test: check_config_header test_checksum test_crc test_error_injection test_frame test_record test_channel test_timer test_metrics test_socket test_stop_and_wait
+test: check_config_header test_checksum test_crc test_error_injection test_frame test_record test_channel test_timer test_metrics test_socket test_stop_and_wait test_go_back_n test_selective_repeat
 
 check_config_header: $(CONFIG_TEST)
 	./$(CONFIG_TEST)
@@ -68,6 +72,12 @@ test_socket: $(SOCKET_TEST)
 test_stop_and_wait: $(STOP_AND_WAIT_TEST)
 	./$(STOP_AND_WAIT_TEST)
 
+test_go_back_n: $(GO_BACK_N_TEST)
+	./$(GO_BACK_N_TEST)
+
+test_selective_repeat: $(SELECTIVE_REPEAT_TEST)
+	./$(SELECTIVE_REPEAT_TEST)
+
 $(CHECKSUM_TEST): $(CHECKSUM_TEST_SOURCES) include/checksum.hpp | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CHECKSUM_TEST_SOURCES) -o $@
 
@@ -101,6 +111,12 @@ $(SOCKET_TEST): $(SOCKET_TEST_SOURCES) include/socket.hpp include/record.hpp | $
 $(STOP_AND_WAIT_TEST): $(STOP_AND_WAIT_TEST_SOURCES) include/stop_and_wait.hpp include/protocol.hpp | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(STOP_AND_WAIT_TEST_SOURCES) -o $@
 
+$(GO_BACK_N_TEST): $(GO_BACK_N_TEST_SOURCES) include/go_back_n.hpp include/protocol.hpp | $(BUILD_DIR)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(GO_BACK_N_TEST_SOURCES) -o $@
+
+$(SELECTIVE_REPEAT_TEST): $(SELECTIVE_REPEAT_TEST_SOURCES) include/selective_repeat.hpp include/protocol.hpp | $(BUILD_DIR)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(SELECTIVE_REPEAT_TEST_SOURCES) -o $@
+
 $(BUILD_DIR)/%.o: src/%.cpp | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
@@ -108,4 +124,4 @@ $(BUILD_DIR):
 	mkdir -p $@
 
 clean:
-	rm -f $(OBJECTS) $(CHECKSUM_TEST) $(CONFIG_TEST) $(CRC_TEST) $(ERROR_INJECTION_TEST) $(FRAME_TEST) $(RECORD_TEST) $(CHANNEL_TEST) $(TIMER_TEST) $(METRICS_TEST) $(SOCKET_TEST) $(STOP_AND_WAIT_TEST)
+	rm -f $(OBJECTS) $(CHECKSUM_TEST) $(CONFIG_TEST) $(CRC_TEST) $(ERROR_INJECTION_TEST) $(FRAME_TEST) $(RECORD_TEST) $(CHANNEL_TEST) $(TIMER_TEST) $(METRICS_TEST) $(SOCKET_TEST) $(STOP_AND_WAIT_TEST) $(GO_BACK_N_TEST) $(SELECTIVE_REPEAT_TEST)
