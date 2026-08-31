@@ -106,7 +106,30 @@ Note that the baseline efficiency is bounded well below 1.0 by framing overhead
 alone. With a 46-byte payload the frame is padded to the 64-byte minimum, so a
 transfer with no retransmission at all can reach at most 46/64 = 0.71875.
 
-### 3.4 Validation before interpretation
+### 3.4 Completion time, defined before it is interpreted
+
+`completion_ms` is the simulation's logical clock: the sum of every round's
+measured duration, each floored at a minimum of 1 ms, plus -- for every round
+in which no progress was made -- the *current* value of the adaptive timeout
+estimator at that point in the run. That estimator
+(`include/timer.hpp`/`src/timer.cpp`) starts at a 100 ms constructor default
+and adapts as RTT samples arrive, but Karn's rule discards the RTT sample of
+any frame that was retransmitted, so a run that times out on every
+progress-bearing frame never collects a sample and pays every one of its
+timeout rounds at the unadapted 100 ms default rather than a value the
+estimator ever fitted to this run's channel.
+
+The estimator's value at any point in a run is therefore a separate,
+data-dependent quantity driven by that run's own RTT samples, not a fixed
+simulation parameter like the payload size or window. A large jump in
+`completion_ms` between two runs can reflect a change in this estimator floor
+as much as a change in retransmission count, so it should not be read as
+protocol cost alone without checking `current_timeout_ms` and
+`rtt_sample_count` for the runs being compared. §3.5 explains how a run with
+zero RTT samples is detected and disclosed; the same runs are called out again
+in §4.3 wherever their completion time or goodput is discussed.
+
+### 3.5 Validation before interpretation
 
 `tools/validate_results.py` runs before any figure or table is produced and fails
 the whole pipeline, naming the offending run, if any of the following does not
@@ -140,7 +163,7 @@ flagged and excluded from RTT interpretation rather than being read as 0 ms.
 
 {{FLAGGED_RUNS}}
 
-### 3.5 Test strategy for the tooling
+### 3.6 Test strategy for the tooling
 
 The validation, plotting, and report tooling was written test-first against a
 small synthetic result set whose values are known exactly:

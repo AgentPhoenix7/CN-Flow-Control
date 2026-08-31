@@ -112,7 +112,30 @@ Note that the baseline efficiency is bounded well below 1.0 by framing overhead
 alone. With a 46-byte payload the frame is padded to the 64-byte minimum, so a
 transfer with no retransmission at all can reach at most 46/64 = 0.71875.
 
-### 3.4 Validation before interpretation
+### 3.4 Completion time, defined before it is interpreted
+
+`completion_ms` is the simulation's logical clock: the sum of every round's
+measured duration, each floored at a minimum of 1 ms, plus -- for every round
+in which no progress was made -- the *current* value of the adaptive timeout
+estimator at that point in the run. That estimator
+(`include/timer.hpp`/`src/timer.cpp`) starts at a 100 ms constructor default
+and adapts as RTT samples arrive, but Karn's rule discards the RTT sample of
+any frame that was retransmitted, so a run that times out on every
+progress-bearing frame never collects a sample and pays every one of its
+timeout rounds at the unadapted 100 ms default rather than a value the
+estimator ever fitted to this run's channel.
+
+The estimator's value at any point in a run is therefore a separate,
+data-dependent quantity driven by that run's own RTT samples, not a fixed
+simulation parameter like the payload size or window. A large jump in
+`completion_ms` between two runs can reflect a change in this estimator floor
+as much as a change in retransmission count, so it should not be read as
+protocol cost alone without checking `current_timeout_ms` and
+`rtt_sample_count` for the runs being compared. §3.5 explains how a run with
+zero RTT samples is detected and disclosed; the same runs are called out again
+in §4.3 wherever their completion time or goodput is discussed.
+
+### 3.5 Validation before interpretation
 
 `tools/validate_results.py` runs before any figure or table is produced and fails
 the whole pipeline, naming the offending run, if any of the following does not
@@ -151,7 +174,7 @@ In this result set 4 run(s) produced no unambiguous RTT sample at all, so their 
 - `go-back-n__data-delay__0.4`
 - `go-back-n__data-delay__0.5`
 
-### 3.5 Test strategy for the tooling
+### 3.6 Test strategy for the tooling
 
 The validation, plotting, and report tooling was written test-first against a
 small synthetic result set whose values are known exactly:
@@ -188,6 +211,8 @@ small synthetic result set whose values are known exactly:
 With no impairment every protocol delivers the file with zero retransmissions and zero timeouts, and all three reach the same efficiency, because efficiency then measures nothing but framing overhead. What separates them is completion time: the two windowed protocols keep several frames in flight per round, while Stop-and-Wait pays a full round trip for every single frame.
 
 ### 4.2 Figures
+
+Where two protocols' curves coincide exactly (see §4.3), the figures separate them by dash pattern and marker shape rather than by colour alone, so an overlapping pair stays distinguishable rather than collapsing into what looks like a single series.
 
 #### DATA-path bit corruption
 
@@ -273,9 +298,11 @@ At the hardest level tested, probability 0.5:
 | Go-Back-N | 10556 | 388 | 0.072810 | 789 | 104 |
 | Selective Repeat | 328 | 12,488 | 0.380952 | 78 | 26 |
 
+Note: for `go-back-n__data-error__0.5`, the timeout estimator was still at its 100 ms constructor default throughout the run above -- Karn's rule discarded every RTT sample, so the estimator never adapted -- and every timeout round in the completion time and goodput above cost 100 ms of logical clock rather than a fitted value (§3.4, §3.5).
+
 Selective Repeat finishes fastest (328 ms, 25.2x the unimpaired baseline), and Stop-and-Wait and Selective Repeat reach the highest efficiency (0.380952).
-Stop-and-Wait and Selective Repeat produce *identical* `efficiency` at every level on this path, so their curves coincide exactly in that figure; the figures separate coincident series by dash pattern and marker shape rather than by colour alone.
-Stop-and-Wait and Selective Repeat produce *identical* `retransmissions` at every level on this path, so their curves coincide exactly in that figure; the figures separate coincident series by dash pattern and marker shape rather than by colour alone.
+Stop-and-Wait and Selective Repeat produce *identical* `efficiency` at every level on this path, so their curves coincide exactly in that figure (see §4.2 for how coincident series stay distinguishable there).
+Stop-and-Wait and Selective Repeat produce *identical* `retransmissions` at every level on this path, so their curves coincide exactly in that figure (see §4.2 for how coincident series stay distinguishable there).
 
 **DATA-path excessive delay (loss).**
 
@@ -287,9 +314,11 @@ At the hardest level tested, probability 0.5:
 | Go-Back-N | 10556 | 388 | 0.072810 | 789 | 104 |
 | Selective Repeat | 328 | 12,488 | 0.380952 | 78 | 26 |
 
+Note: for `go-back-n__data-delay__0.5`, the timeout estimator was still at its 100 ms constructor default throughout the run above -- Karn's rule discarded every RTT sample, so the estimator never adapted -- and every timeout round in the completion time and goodput above cost 100 ms of logical clock rather than a fitted value (§3.4, §3.5).
+
 Selective Repeat finishes fastest (328 ms, 25.2x the unimpaired baseline), and Stop-and-Wait and Selective Repeat reach the highest efficiency (0.380952).
-Stop-and-Wait and Selective Repeat produce *identical* `efficiency` at every level on this path, so their curves coincide exactly in that figure; the figures separate coincident series by dash pattern and marker shape rather than by colour alone.
-Stop-and-Wait and Selective Repeat produce *identical* `retransmissions` at every level on this path, so their curves coincide exactly in that figure; the figures separate coincident series by dash pattern and marker shape rather than by colour alone.
+Stop-and-Wait and Selective Repeat produce *identical* `efficiency` at every level on this path, so their curves coincide exactly in that figure (see §4.2 for how coincident series stay distinguishable there).
+Stop-and-Wait and Selective Repeat produce *identical* `retransmissions` at every level on this path, so their curves coincide exactly in that figure (see §4.2 for how coincident series stay distinguishable there).
 
 **ACK-path bit corruption.**
 
@@ -302,8 +331,8 @@ At the hardest level tested, probability 0.5:
 | Selective Repeat | 408 | 10,039 | 0.353591 | 91 | 33 |
 
 Go-Back-N finishes fastest (14 ms, 1.1x the unimpaired baseline), and Go-Back-N reaches the highest efficiency (0.711111).
-Stop-and-Wait and Selective Repeat produce *identical* `efficiency` at every level on this path, so their curves coincide exactly in that figure; the figures separate coincident series by dash pattern and marker shape rather than by colour alone.
-Stop-and-Wait and Selective Repeat produce *identical* `retransmissions` at every level on this path, so their curves coincide exactly in that figure; the figures separate coincident series by dash pattern and marker shape rather than by colour alone.
+Stop-and-Wait and Selective Repeat produce *identical* `efficiency` at every level on this path, so their curves coincide exactly in that figure (see §4.2 for how coincident series stay distinguishable there).
+Stop-and-Wait and Selective Repeat produce *identical* `retransmissions` at every level on this path, so their curves coincide exactly in that figure (see §4.2 for how coincident series stay distinguishable there).
 Go-Back-N never retransmits on this path at any level tested.
 
 **ACK-path excessive delay (loss).**
@@ -317,15 +346,15 @@ At the hardest level tested, probability 0.5:
 | Selective Repeat | 408 | 10,039 | 0.353591 | 91 | 33 |
 
 Go-Back-N finishes fastest (14 ms, 1.1x the unimpaired baseline), and Go-Back-N reaches the highest efficiency (0.711111).
-Stop-and-Wait and Selective Repeat produce *identical* `efficiency` at every level on this path, so their curves coincide exactly in that figure; the figures separate coincident series by dash pattern and marker shape rather than by colour alone.
-Stop-and-Wait and Selective Repeat produce *identical* `retransmissions` at every level on this path, so their curves coincide exactly in that figure; the figures separate coincident series by dash pattern and marker shape rather than by colour alone.
+Stop-and-Wait and Selective Repeat produce *identical* `efficiency` at every level on this path, so their curves coincide exactly in that figure (see §4.2 for how coincident series stay distinguishable there).
+Stop-and-Wait and Selective Repeat produce *identical* `retransmissions` at every level on this path, so their curves coincide exactly in that figure (see §4.2 for how coincident series stay distinguishable there).
 Go-Back-N never retransmits on this path at any level tested.
 
 **Reading the comparison as a whole.**
 
-Impairment on the DATA path and impairment on the ACK path are not symmetric, and the asymmetry follows directly from how each protocol acknowledges. Go-Back-N's acknowledgments are cumulative, so a later acknowledgment subsumes every earlier one it passes: with a window of frames acknowledged per round, losing individual acknowledgments costs it almost nothing. Stop-and-Wait has exactly one acknowledgment in flight and Selective Repeat needs each frame acknowledged individually, so both must recover from every acknowledgment that is corrupted or delayed.
+Impairment on the DATA path and impairment on the ACK path are not symmetric, and the asymmetry follows directly from how each protocol acknowledges. Go-Back-N's acknowledgments are cumulative, so a later acknowledgment subsumes every earlier one it passes: with a window of frames acknowledged per round, losing individual acknowledgments costs it zero retransmissions at every level tested in this result set. Stop-and-Wait has exactly one acknowledgment in flight and Selective Repeat needs each frame acknowledged individually, so both must recover from every acknowledgment that is corrupted or delayed.
 
-On the DATA path the ordering reverses. Go-Back-N's whole-window retransmission turns each lost frame into a burst of resends, and the cost compounds as the probability rises, while Selective Repeat retransmits only what was actually missed and tracks Stop-and-Wait's retransmission count exactly, at a fraction of its completion time.
+On the DATA path the ordering reverses. Go-Back-N's whole-window retransmission turns each lost frame into a burst of resends, and the cost compounds as the probability rises, while Selective Repeat retransmits only what was actually missed, matching Stop-and-Wait's retransmission count exactly at every level tested in this result set, at a fraction of its completion time.
 
 **2 pair(s) of impairment sweeps coincide exactly.** The following pairs agree on every metric, for every protocol, at every probability level (all 15 row pairs each), which means the 4 figures for one path are duplicates of the 4 for the other:
 

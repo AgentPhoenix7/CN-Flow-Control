@@ -614,6 +614,19 @@ private:
   std::unique_ptr<ArqSender> machine_;
   std::vector<FrameTiming> timings_;
   std::vector<bool> acknowledged_;
+  // Maps a one-byte wire sequence to the frame index that most recently
+  // transmitted it, overwritten on every transmit; used only for RTT-sample
+  // bookkeeping in record_progress(). Both ARQ constructors reject a window
+  // above the protocol limit (GO_BACK_N_MAX_WINDOW = 255, or
+  // SELECTIVE_REPEAT_MAX_WINDOW = 128), which is well under the 256 sequence
+  // values a single byte can hold, so a sequence number cannot wrap back onto
+  // a frame that is still outstanding: retransmitting it requires the whole
+  // window to have advanced past its original owner first, which requires
+  // that owner to already be acknowledged. A same-value collision in this
+  // array therefore cannot happen while the prior owner is still
+  // unacknowledged; if the invariant were ever violated, the effect would be
+  // silently skipping one RTT sample, not corrupting the transfer, since this
+  // array feeds metrics only.
   std::array<std::size_t, 256U> sequence_owner_{};
   std::size_t acknowledged_base_{0U};
   TimeoutEstimator estimator_{};

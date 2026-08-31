@@ -71,7 +71,10 @@ public:
 
   /**
    * @brief Processes one verified, arriving frame.
-   * @param frame_index Index of the frame within the full message.
+   * @param frame_index Index of the frame within the full message. Ignored on
+   *   every path here; Stop-and-Wait delivers only the next expected frame,
+   *   so this argument is only meaningful for Selective Repeat's
+   *   out-of-order buffering.
    * @param sequence Sequence number carried on the wire.
    */
   ReceiveResult receive(std::size_t frame_index, std::uint8_t sequence);

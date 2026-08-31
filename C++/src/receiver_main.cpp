@@ -231,6 +231,10 @@ private:
       return;
     }
 
+    // S&W/GBN ignore frame_index on every path except an in-order delivery,
+    // where it always equals delivered_frames_ regardless of the arriving
+    // sequence number, so resolve_frame_index()'s unconditional return of the
+    // delivery cursor for those two protocols is always a safe placeholder.
     const ReceiveResult result = machine_->receive(*frame_index, sequence);
     deliver(result, *frame_index, verified->payload);
     if (result.ack.has_value()) {

@@ -178,13 +178,25 @@ def render_matrix_parameters(rows: list[dict[str, str]]) -> str:
     return markdown_table(["Parameter", "Value", "Why"], parameters)
 
 
+def flagged_run_ids(flags: list[str]) -> list[str]:
+    """Extracts the run ids named by the zero-RTT-sample flagging pass.
+
+    ``validate_results.validate_row`` appends one flag per run whose
+    ``rtt_sample_count`` is zero, formatted as ``"<run_id>: <reason>"``. This is
+    the one place that string is parsed, so every other consumer of "which runs
+    are flagged" (the RTT disclosure and the completion-time caveat below)
+    shares the same list rather than re-deriving it.
+    """
+    return [flag.split(":", 1)[0] for flag in flags]
+
+
 def render_flagged_runs(flags: list[str]) -> str:
     if not flags:
         return (
             "No run in this result set has an unmeasurable mean RTT; every run "
             "produced at least one unambiguous RTT sample."
         )
-    names = [flag.split(":", 1)[0] for flag in flags]
+    names = flagged_run_ids(flags)
     lines = [
         f"In this result set {len(names)} run(s) produced no unambiguous RTT "
         "sample at all, so their mean RTT is **not measurable** and is excluded "
@@ -193,6 +205,32 @@ def render_flagged_runs(flags: list[str]) -> str:
     ]
     lines.extend(f"- `{name}`" for name in names)
     return "\n".join(lines)
+
+
+def completion_estimator_caveat(
+    shown_rows: list[dict[str, str]], flagged: list[str]
+) -> str | None:
+    """Notes when a shown run's completion time reflects the estimator default.
+
+    A run named by ``flagged_run_ids`` produced zero RTT samples, which means
+    every timeout round in its ``completion_ms`` was charged at the timeout
+    estimator's untouched 100 ms constructor default rather than a value the
+    estimator ever fitted to this run's channel (see the completion-time
+    definition in §3.4). Returns ``None`` when none of ``shown_rows`` is
+    flagged, so callers can skip the note entirely.
+    """
+    named = [row["run_id"] for row in shown_rows if row["run_id"] in flagged]
+    if not named:
+        return None
+    listing = ", ".join(f"`{name}`" for name in named)
+    verb = "was" if len(named) == 1 else "were"
+    return (
+        f"Note: for {listing}, the timeout estimator {verb} still at its 100 ms "
+        "constructor default throughout the run above -- Karn's rule discarded "
+        "every RTT sample, so the estimator never adapted -- and every timeout "
+        "round in the completion time and goodput above cost 100 ms of logical "
+        "clock rather than a fitted value (§3.4, §3.5)."
+    )
 
 
 def render_baseline_table(rows: list[dict[str, str]]) -> str:
@@ -236,7 +274,13 @@ def render_baseline_table(rows: list[dict[str, str]]) -> str:
 
 
 def render_figures() -> str:
-    sections: list[str] = []
+    sections: list[str] = [
+        "Where two protocols' curves coincide exactly (see §4.3), the figures "
+        "separate them by dash pattern and marker shape rather than by colour "
+        "alone, so an overlapping pair stays distinguishable rather than "
+        "collapsing into what looks like a single series.",
+        "",
+    ]
     for impairment in IMPAIRMENTS:
         sections.append(f"#### {IMPAIRMENT_TITLES[impairment]}")
         sections.append("")
@@ -360,6 +404,39 @@ def render_path_coincidences(rows: list[dict[str, str]]) -> list[str]:
     return paragraphs
 
 
+def gbn_ack_path_retransmission_free(rows: list[dict[str, str]]) -> bool:
+    """True if Go-Back-N recorded zero retransmissions on both ACK-path sweeps.
+
+    This is the data check behind the claim that a cumulative acknowledgment
+    absorbs a lost individual one almost for free: a later acknowledgment
+    subsumes every earlier one it passes, so unless the whole window's worth
+    of acknowledgments is lost before any of them lands, the window still
+    advances and nothing needs to be resent.
+    """
+    return all(
+        find(rows, "go-back-n", impairment, f"{probability:.1f}")["retransmissions"] == "0"
+        for impairment in ("ack-error", "ack-delay")
+        for probability in PROBABILITIES
+    )
+
+
+def sr_matches_stop_and_wait_retransmissions(
+    rows: list[dict[str, str]], impairment: str
+) -> bool:
+    """True if Selective Repeat's retransmission count equals Stop-and-Wait's
+
+    at every probability level on the given DATA-path impairment. Both
+    protocols retransmit exactly the frames the receiver never accepted, so
+    when the same channel decisions strike the same DATA path, resending only
+    what was missed lands on the same count either way.
+    """
+    return all(
+        find(rows, "selective-repeat", impairment, f"{probability:.1f}")["retransmissions"]
+        == find(rows, "stop-and-wait", impairment, f"{probability:.1f}")["retransmissions"]
+        for probability in PROBABILITIES
+    )
+
+
 def names_of(protocols: list[str]) -> str:
     """Joins protocol titles into readable English."""
     titles = [PROTOCOL_TITLES[protocol] for protocol in protocols]
@@ -368,8 +445,9 @@ def names_of(protocols: list[str]) -> str:
     return ", ".join(titles[:-1]) + " and " + titles[-1]
 
 
-def render_observations(rows: list[dict[str, str]]) -> str:
+def render_observations(rows: list[dict[str, str]], flags: list[str]) -> str:
     sections: list[str] = []
+    flagged = flagged_run_ids(flags)
 
     for impairment in IMPAIRMENTS:
         sections.append(f"**{IMPAIRMENT_TITLES[impairment]}.**")
@@ -399,6 +477,10 @@ def render_observations(rows: list[dict[str, str]]) -> str:
         sections.append("At the hardest level tested, probability 0.5:")
         sections.append("")
         sections.append(table)
+        caveat = completion_estimator_caveat(worst, flagged)
+        if caveat is not None:
+            sections.append("")
+            sections.append(caveat)
         sections.append("")
 
         best_time = min(int(row["completion_ms"]) for row in worst)
@@ -435,9 +517,8 @@ def render_observations(rows: list[dict[str, str]]) -> str:
                 sections.append(
                     f"{PROTOCOL_TITLES[first]} and {PROTOCOL_TITLES[second]} "
                     f"produce *identical* `{metric}` at every level on this path, "
-                    "so their curves coincide exactly in that figure; the figures "
-                    "separate coincident series by dash pattern and marker shape "
-                    "rather than by colour alone."
+                    "so their curves coincide exactly in that figure (see §4.2 for "
+                    "how coincident series stay distinguishable there)."
                 )
 
         never_retransmits = [
@@ -458,24 +539,39 @@ def render_observations(rows: list[dict[str, str]]) -> str:
 
     sections.append("**Reading the comparison as a whole.**")
     sections.append("")
+    gbn_ack_free = gbn_ack_path_retransmission_free(rows)
+    ack_cost_clause = (
+        "losing individual acknowledgments costs it zero retransmissions at "
+        "every level tested in this result set"
+        if gbn_ack_free
+        else "losing individual acknowledgments rarely forces a retransmission "
+        "in this result set"
+    )
     sections.append(
         "Impairment on the DATA path and impairment on the ACK path are not "
         "symmetric, and the asymmetry follows directly from how each protocol "
         "acknowledges. Go-Back-N's acknowledgments are cumulative, so a later "
         "acknowledgment subsumes every earlier one it passes: with a window of "
-        "frames acknowledged per round, losing individual acknowledgments costs "
-        "it almost nothing. Stop-and-Wait has exactly one acknowledgment in "
-        "flight and Selective Repeat needs each frame acknowledged "
-        "individually, so both must recover from every acknowledgment that is "
-        "corrupted or delayed."
+        f"frames acknowledged per round, {ack_cost_clause}. Stop-and-Wait has "
+        "exactly one acknowledgment in flight and Selective Repeat needs each "
+        "frame acknowledged individually, so both must recover from every "
+        "acknowledgment that is corrupted or delayed."
     )
     sections.append("")
+    sr_matches_saw = sr_matches_stop_and_wait_retransmissions(rows, "data-error")
+    sr_clause = (
+        "matching Stop-and-Wait's retransmission count exactly at every level "
+        "tested in this result set"
+        if sr_matches_saw
+        else "landing close to Stop-and-Wait's retransmission count in this "
+        "result set"
+    )
     sections.append(
         "On the DATA path the ordering reverses. Go-Back-N's whole-window "
         "retransmission turns each lost frame into a burst of resends, and the "
         "cost compounds as the probability rises, while Selective Repeat "
-        "retransmits only what was actually missed and tracks Stop-and-Wait's "
-        "retransmission count exactly, at a fraction of its completion time."
+        f"retransmits only what was actually missed, {sr_clause}, at a "
+        "fraction of its completion time."
     )
     for paragraph in render_path_coincidences(rows):
         sections.append("")
@@ -512,7 +608,7 @@ def render(rows: list[dict[str, str]], flags: list[str], template: str) -> str:
         "FLAGGED_RUNS": render_flagged_runs(flags),
         "BASELINE_TABLE": render_baseline_table(rows),
         "FIGURES": render_figures(),
-        "OBSERVATIONS": render_observations(rows),
+        "OBSERVATIONS": render_observations(rows, flags),
         "RESULTS_TABLE": render_results_table(rows),
     }
     if sorted(substitutions) != sorted(PLACEHOLDERS):
