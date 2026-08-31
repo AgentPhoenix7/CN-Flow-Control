@@ -26,6 +26,14 @@ std::uint16_t checksum16_compute(
     sum = (sum & WORD_MASK) + (sum >> 16U);
   }
 
+  if ((data.size() % 2U) != 0U) {
+    const std::uint32_t final_word =
+      static_cast<std::uint32_t>(data.back()) << 8U;
+
+    sum += final_word;
+    sum = (sum & WORD_MASK) + (sum >> 16U);
+  }
+
   return static_cast<std::uint16_t>(~sum);
 }
 
