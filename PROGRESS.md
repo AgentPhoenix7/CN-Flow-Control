@@ -60,6 +60,11 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - Added an adaptive SRTT/RTTVAR timeout estimator with 10--2000 ms clamps and Karn's rule for retransmitted frames.
 - Added transfer counters, explicit efficiency/goodput/mean-RTT denominators, zero-denominator handling, and stable CSV serialization.
 - Added move-only RAII sockets, exact send/receive loops, TCP listen/connect/accept, and external two-byte application-record framing.
+- Implemented the Stop-and-Wait sender/receiver state machine (one outstanding frame, ACK matching, timeout retransmission, duplicate-safe receiver, sequence wraparound), making the pre-existing `test_stop_and_wait` RED suite pass.
+- Added the shared `protocol.hpp` `Transmission`/`ReceiveResult` value types used by all three ARQ state machines.
+- Wrote `test_go_back_n` first (window fill, cumulative ACK slide, whole-window timeout, duplicate-ACK rejection, invalid-window rejection, sequence wraparound, receiver out-of-order discard, receiver cumulative delivery/duplicate) and implemented Go-Back-N to green.
+- Wrote `test_selective_repeat` first (independent ACK slide, selective retransmission, duplicate-ACK rejection, invalid-window rejection, sequence wraparound, receiver out-of-order buffering and contiguous delivery, receiver duplicate ACK) and implemented Selective Repeat to green.
+- Wired `test_go_back_n` and `test_selective_repeat` into `C++/Makefile` alongside the existing `test_stop_and_wait` target.
 
 ## Current Repository State
 
@@ -78,13 +83,17 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - `C++/include/socket.hpp` and `C++/src/socket.cpp` close descriptors deterministically, transfer ownership safely, distinguish clean EOF from truncation, and keep the external record prefix outside internal records.
 - The root and `C++/` `.gitignore` files contain verified project-specific rules.
 - `C++/include/checksum.hpp` declares Checksum-16 computation and verification; `C++/src/checksum.cpp` implements both operations, and `C++/tests/test_checksum.cpp` covers three computation cases plus valid, corrupted-payload, corrupted-checksum, and empty-input verification.
-- ARQ, applications, tools, and the report remain empty placeholders.
+- `C++/include/protocol.hpp` defines the shared `Transmission` and `ReceiveResult` value types used by all three ARQ state machines.
+- `C++/include/stop_and_wait.hpp`/`C++/src/stop_and_wait.cpp` implement `StopAndWaitSender`/`StopAndWaitReceiver` with one outstanding frame, ACK matching, timeout retransmission, duplicate-safe delivery, and modulo-256 wraparound.
+- `C++/include/go_back_n.hpp`/`C++/src/go_back_n.cpp` implement `GoBackNSender`/`GoBackNReceiver` with sender window `N` (1--255, enforced by `std::invalid_argument`), receiver window 1, cumulative ACKs, whole-window timeout retransmission, and out-of-order discard with re-ACK of the last accepted sequence.
+- `C++/include/selective_repeat.hpp`/`C++/src/selective_repeat.cpp` implement `SelectiveRepeatSender`/`SelectiveRepeatReceiver` with both windows `N` (1--128, enforced by `std::invalid_argument`), independent ACKs, selective (per-frame) retransmission, and receiver buffering with contiguous-only delivery.
+- Applications, tools, and the report remain empty placeholders.
 - The root `pyproject.toml` and `uv.lock` describe an unpackaged virtual project, no root `src/` package tree remains, and `.venv` is synchronized.
-- No sender/receiver executables are linked; all seven focused Checksum-16 cases pass, but CRC and the remaining project test suite do not exist yet.
+- No sender/receiver executables are linked yet; all unit-level protocol and support-module tests pass.
 
 ## Current Exact Step
 
-All shared framing/runtime support is GREEN. The immediate next step is to add Stop-and-Wait sender/receiver state-machine tests for new send, timeout retransmission, ACK matching, duplicate-safe delivery, and sequence wraparound.
+All three ARQ state machines (Stop-and-Wait, Go-Back-N, Selective Repeat) are implemented and GREEN. The immediate next step is the sender/receiver command-line applications that compose these state machines with `frame`, `record`, `channel`, and `socket`.
 
 ## Recommended Implementation Order
 
@@ -138,6 +147,10 @@ All shared framing/runtime support is GREEN. The immediate next step is to add S
 - `test_metrics` first failed to compile because its API was absent, then passed zero denominators, derived calculations, and stable CSV output.
 - `test_socket` first failed to compile because its API was absent. Its first sandboxed run was blocked at `send` with `Operation not permitted`; the identical permission-capable run passed move ownership, exact record exchange, clean EOF, and truncated-record rejection.
 - The current full `make -C C++ test` exits 0 with local socket permission for configuration plus 44 printed unit-test groups, and `make -C C++ all` compiles all implemented translation units with strict warnings.
+- `make -C C++ test_stop_and_wait` compiled and passed all five cases against the pre-existing test file once `protocol.hpp`/`stop_and_wait.hpp`/`stop_and_wait.cpp` were implemented (previously empty, so linking failed with undefined references — the expected RED).
+- `test_go_back_n` and `test_selective_repeat` were written first and confirmed RED (undefined-reference link failures against empty `.cpp` files), then each protocol's implementation made its own eight/seven cases pass.
+- `make -C C++ test` exits 0 with all 60 printed test groups across every module (checksum, config, CRC, error injection, frame, record, channel, timer, metrics, socket, Stop-and-Wait, Go-Back-N, Selective Repeat) passing with pristine output.
+- `make -C C++ all` compiles every translation unit, including the three new ARQ sources, with `-Wall -Wextra -Wpedantic -Werror` and no warnings.
 
 ## How to Update This File
 
