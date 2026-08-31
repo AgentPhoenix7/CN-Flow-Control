@@ -57,6 +57,28 @@ int test_odd_length_checksum()
   return 0;
 }
 
+int test_empty_input_checksum()
+{
+  const std::vector<std::uint8_t> data{};
+  constexpr std::uint16_t expected = 0xFFFFU;
+
+  const std::uint16_t actual =
+    flow_control::checksum16_compute(data);
+
+  if (actual != expected) {
+    std::cerr
+      << "FAIL empty input: expected 0x"
+      << std::hex << std::uppercase << std::setw(4)
+      << std::setfill('0') << expected
+      << ", received 0x" << std::setw(4) << actual
+      << '\n';
+    return 1;
+  }
+
+  std::cout << "PASS: empty-input checksum\n";
+  return 0;
+}
+
 }  // namespace
 
 int main()
@@ -65,6 +87,7 @@ int main()
 
   failures += test_even_length_checksum();
   failures += test_odd_length_checksum();
+  failures += test_empty_input_checksum();
 
   return failures == 0 ? 0 : 1;
 }

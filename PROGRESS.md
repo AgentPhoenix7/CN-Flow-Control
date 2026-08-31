@@ -55,19 +55,19 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - `C++/README.md` documents the confirmed wire format and protocol behavior.
 - `C++/Makefile` compiles every current source file into ignored object files and provides a focused `test_checksum` target.
 - The root and `C++/` `.gitignore` files contain verified project-specific rules.
-- `C++/include/checksum.hpp` declares the vector-based Checksum-16 compute API; `C++/src/checksum.cpp` implements even-length behavior, and `C++/tests/test_checksum.cpp` contains even- and odd-length known-vector tests.
+- `C++/include/checksum.hpp` declares the vector-based Checksum-16 compute API; `C++/src/checksum.cpp` implements even- and odd-length behavior, and `C++/tests/test_checksum.cpp` contains both known-vector tests.
 - The remaining C++ headers, sources, tests, tools, and report template remain empty placeholders.
 - The root `pyproject.toml` and `uv.lock` describe an unpackaged virtual project, no root `src/` package tree remains, and `.venv` is synchronized.
-- Git is synchronized with `origin/main` at commit `44f04ec` before this handoff update.
-- No sender/receiver executables are linked; the even-length Checksum-16 case passes while the new odd-length case is intentionally RED.
+- Git is synchronized with `origin/main` at commit `cb0ff5e` before this handoff update.
+- No sender/receiver executables are linked; both focused Checksum-16 compute cases pass, but no full project test suite exists yet.
 
 ## Current Exact Step
 
-The odd-length Checksum-16 test has reached the expected RED value mismatch. The immediate next step is:
+The even- and odd-length Checksum-16 compute cases are GREEN. The immediate next step is:
 
-1. treat the final odd byte as the high byte of a zero-padded 16-bit word;
-2. fold its carry using the existing rule; and
-3. run `make -C 'C++' test_checksum` to confirm both cases are GREEN.
+1. add an empty-vector boundary test expecting `0xFFFF`;
+2. run `make -C 'C++' test_checksum`; and
+3. confirm the existing implementation already satisfies this boundary before beginning checksum verification behavior.
 
 ## Recommended Implementation Order
 
@@ -98,7 +98,8 @@ The odd-length Checksum-16 test has reached the expected RED value mismatch. The
 - After the minimal even-length implementation, `make -C 'C++' test_checksum` compiled cleanly and printed `PASS: even-length checksum`.
 - Running `./C++/build/test_checksum` directly also printed `PASS: even-length checksum`.
 - After adding the odd-length test, `make -C 'C++' test_checksum` printed `PASS: even-length checksum` followed by the expected RED mismatch `expected 0x97CB, received 0xEDCB` and exited nonzero.
-- One of two focused Checksum-16 cases currently passes; do not report a passing target or full-suite count.
+- After adding odd-byte zero padding, `make -C 'C++' test_checksum` compiled cleanly and printed `PASS` for both even- and odd-length checksums.
+- Two focused Checksum-16 cases pass; do not report a full-suite test count.
 
 ## How to Update This File
 
