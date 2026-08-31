@@ -53,21 +53,21 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - `AGENTS.md` contains the contributor and architecture guide.
 - `PROGRESS.md` is now the conversation-handoff file.
 - `C++/README.md` documents the confirmed wire format and protocol behavior.
-- `C++/Makefile` compiles every current source file into ignored object files under `C++/build/`.
+- `C++/Makefile` compiles every current source file into ignored object files and provides a focused `test_checksum` target.
 - The root and `C++/` `.gitignore` files contain verified project-specific rules.
 - `C++/include/checksum.hpp` now declares the vector-based Checksum-16 compute API, and `C++/tests/test_checksum.cpp` contains its first known-vector test; `C++/src/checksum.cpp` remains empty.
 - The remaining C++ headers, sources, tests, tools, and report template remain empty placeholders.
 - The root `pyproject.toml` and `uv.lock` describe an unpackaged virtual project, no root `src/` package tree remains, and `.venv` is synchronized.
-- Git is clean and synchronized with `origin/main` at commit `7d386eb` before this handoff update.
+- Git is synchronized with `origin/main` at commit `44f04ec` before this handoff update.
 - No executables are linked and no project tests exist yet; successful object compilation does not prove protocol behavior.
 
 ## Current Exact Step
 
-The Checksum-16 public API and first known-vector test have reached the expected RED state. The immediate next step is:
+The focused `test_checksum` target has reproduced the expected RED linker failure. The immediate next step is:
 
-1. add a focused `test_checksum` Make target;
-2. reproduce the expected undefined-reference failure through that target; and
-3. implement only enough Checksum-16 behavior to pass the even-length test.
+1. implement only enough Checksum-16 behavior to pass the even-length test;
+2. run `make -C 'C++' test_checksum`; and
+3. confirm the first GREEN result before adding odd-length behavior.
 
 ## Recommended Implementation Order
 
@@ -94,7 +94,8 @@ The Checksum-16 public API and first known-vector test have reached the expected
 - `git check-ignore -v C++/build/.gitkeep C++/output_files/.gitkeep` confirms that the placeholder files are explicitly preserved.
 - `make -C 'C++' all` successfully compiled all 14 source translation units using `g++`, C++17, and strict warning flags with no warnings or errors.
 - Directly compiling `C++/tests/test_checksum.cpp` with `C++/src/checksum.cpp` reached the expected RED linker failure: undefined reference to `flow_control::checksum16_compute(const std::vector<std::uint8_t>&)`.
-- No project tests can run yet; do not report a passing build or test count.
+- `make -C 'C++' test_checksum` reproduced the same expected undefined-reference failure through the permanent focused target.
+- No project test passes yet; do not report a passing test count.
 
 ## How to Update This File
 
