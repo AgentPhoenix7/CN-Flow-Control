@@ -26,7 +26,7 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 
 - Implementation language: C++17 with `g++` and strict warnings.
 - Active implementation directory: `C++/`; headers use `.hpp` and sources use `.cpp`.
-- Python experiment/report environment: root `pyproject.toml`, `uv.lock`, `.python-version`, and `.venv/`. Do not add another `pyproject.toml` under `C++/`.
+- Python experiment/report environment: root `pyproject.toml`, `uv.lock`, `.python-version`, and `.venv/`. This is an unpackaged uv environment for scripts, not an installable Python package. Do not add another `pyproject.toml` under `C++/`.
 - Preserve Assignment 1's serialized data-frame contract: source MAC 6 bytes, destination MAC 6 bytes, valid unpadded payload length 2 bytes in network order, and sequence number 1 byte. The real header size is 15 bytes despite the PDF's “12 bytes” label.
 - Preserve scheme-dependent Checksum-16 and CRC-8/10/16/32 FCS formats, manual serialization, zero padding, and the external two-byte TCP record-length prefix.
 - Use one bidirectional TCP connection as a carrier for explicit DATA, ACK, and completion records.
@@ -42,6 +42,9 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - Created the planned `C++/` directory tree with named placeholder headers, sources, tests, tools, fixture directories, result directories, and report location.
 - Configured VS Code IntelliSense to use `/usr/bin/g++` and C++17.
 - Populated the root and `C++/` `.gitignore` files for Python environments and caches, C++ build products, coverage data, and reconstructed output files while preserving tracked evidence and `.gitkeep` placeholders.
+- Removed the duplicate `src/assignment_2/` placeholder package.
+- Converted the root uv metadata and lockfile from an installable package to a virtual dependency environment with no console entry point or build backend.
+- Removed the remaining `src/` package tree and synchronized `.venv`, uninstalling the former editable package.
 
 ## Current Repository State
 
@@ -51,16 +54,15 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - The root and `C++/` `.gitignore` files contain verified project-specific rules.
 - `C++/Makefile`, `C++/README.md`, and `C++/report/report_template.md` still need real content.
 - No C++ declarations, implementations, tests, fixtures, experiment logic, plots, or report results exist yet.
-- The root uv project currently contains both `src/assignment_2/` and `src/cn_flow_control/` hello-world package files. Their intended package layout must be resolved before using the Python tooling.
+- The root `pyproject.toml` and `uv.lock` describe an unpackaged virtual project, no root `src/` package tree remains, and `.venv` is synchronized.
 - The scaffold and assignment artifacts are currently untracked relative to the initial Git commit.
 
 ## Current Exact Step
 
-The structure audit, handoff documentation, and ignore rules are complete. The immediate next step is to finish repository metadata before writing protocol code:
+The structure audit, handoff documentation, ignore rules, and unpackaged uv environment are complete. The immediate next step is to finish repository metadata before writing protocol code:
 
-1. decide which root Python package namespace to keep;
-2. write the initial `C++/README.md` and strict C++17 `Makefile`; and
-3. verify an intentionally minimal build/test target.
+1. write the initial `C++/README.md` and strict C++17 `Makefile`; and
+2. verify an intentionally minimal build/test target.
 
 After that, begin the first implementation module in a test-first, guided step.
 
@@ -82,6 +84,9 @@ After that, begin the first implementation module in a test-first, guided step.
 - The planned C++ module/file manifest is present apart from the intentionally root-level `pyproject.toml`.
 - `.vscode/c_cpp_properties.json` parses as JSON and selects `g++` with `cppStandard` set to `c++17`.
 - Root `pyproject.toml` parses as TOML.
+- `uv lock` resolves one virtual project, and `uv.lock` records `source = { virtual = "." }`.
+- `UV_CACHE_DIR=/tmp/assignment2-uv-cache uv sync --check` reports an up-to-date lockfile and `Would make no changes`; `test ! -e src` exits successfully.
+- `uv 0.12.5` is installed, and `uv help init` documents that `--no-package` creates a non-importable flat project with no `[build-system]` table.
 - `git check-ignore -v .venv/pyvenv.cfg C++/build/example.o C++/output_files/received.bin` confirms that the root virtual environment, C++ build artifacts, and reconstructed output files are ignored.
 - `git check-ignore -v C++/build/.gitkeep C++/output_files/.gitkeep` confirms that the placeholder files are explicitly preserved.
 - `make -C 'C++' all` currently fails with `No rule to make target 'all'` because the placeholder Makefile is empty.
