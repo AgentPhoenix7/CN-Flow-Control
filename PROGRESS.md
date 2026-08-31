@@ -55,6 +55,7 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - Ported the generic MSB-first CRC engine with CRC-8/10/16/32 parameters, verification, known vectors, empty input, corruption rejection, and invalid-parameter checks.
 - Added deterministic MSB-indexed bit/burst mutation, atomic range validation, a reproducible LCG, probability selection, and independently owned RNG state.
 - Added canonical protected-frame serialization and verification for the 15-byte header and all five FCS schemes, including scheme-dependent padding and CRC-10 left alignment.
+- Added typed CONFIG, DATA, ACK, round-boundary, and completion records with type-specific validation and detectable ACK corruption.
 
 ## Current Repository State
 
@@ -66,15 +67,16 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - `C++/include/crc.hpp` and `C++/src/crc.cpp` provide generic widths 1–32 and the four required parameter sets; `test_crc` covers five behavioral groups.
 - `C++/include/error_injection.hpp` and `C++/src/error_injection.cpp` provide deterministic channel primitives; `test_error_injection` covers five behavioral groups.
 - `C++/include/frame.hpp` and `C++/src/frame.cpp` manually serialize fields, zero-pad, compute/encode FCS values, reject malformed or corrupted frames, and return only verified unpadded payloads.
+- `C++/include/record.hpp` and `C++/src/record.cpp` encode internal record bytes independently of the external TCP prefix, validate DATA sizes and marker bodies, protect ACKs with a complement byte, and serialize fixed-width session configuration.
 - The root and `C++/` `.gitignore` files contain verified project-specific rules.
 - `C++/include/checksum.hpp` declares Checksum-16 computation and verification; `C++/src/checksum.cpp` implements both operations, and `C++/tests/test_checksum.cpp` covers three computation cases plus valid, corrupted-payload, corrupted-checksum, and empty-input verification.
-- Records, channel/timer/metrics/socket, ARQ, applications, tools, and the report remain empty placeholders.
+- Channel/timer/metrics/socket, ARQ, applications, tools, and the report remain empty placeholders.
 - The root `pyproject.toml` and `uv.lock` describe an unpackaged virtual project, no root `src/` package tree remains, and `.venv` is synchronized.
 - No sender/receiver executables are linked; all seven focused Checksum-16 cases pass, but CRC and the remaining project test suite do not exist yet.
 
 ## Current Exact Step
 
-Protected frames and the reusable error primitives are GREEN. The immediate next step is to add typed application-record round-trip and malformed type/length/body tests before implementing CONFIG, DATA, ACK, round-boundary, and completion records.
+Frames and typed records are GREEN. The immediate next step is to test deterministic clean/drop/delay/corruption channel outcomes and invalid probabilities before implementing the channel simulator.
 
 ## Recommended Implementation Order
 
@@ -122,7 +124,8 @@ Protected frames and the reusable error primitives are GREEN. The immediate next
 - `test_error_injection` first failed to compile because its API was absent, then passed five groups after implementation: MSB bit flips, atomic bursts, reproducible RNG, probability selection, and independent RNG state.
 - `test_frame` first failed to compile because its API was absent, then passed eight groups: manual header layout, scheme padding, all-FCS round trips, malformed/corruption rejection, CRC-10 alignment, short final payload, invalid serialization, and the 1499-byte CRC-32 boundary.
 - Mutating the maximum-payload comparison to reject 1499 bytes made the boundary test abort nonzero; restoring the comparison made the target pass.
-- The current full `make -C C++ test` exits 0 for configuration plus 25 printed unit-test groups, and `make -C C++ all` compiles the frame translation unit with strict warnings.
+- `test_record` first failed to compile because its API was absent, then passed four groups: typed round trips, ACK complement integrity, CONFIG round trip, and malformed rejection.
+- The current full `make -C C++ test` exits 0 for configuration plus 29 printed unit-test groups, and `make -C C++ all` compiles frame and record translation units with strict warnings.
 
 ## How to Update This File
 
