@@ -79,6 +79,26 @@ int test_empty_input_checksum()
   return 0;
 }
 
+int test_valid_checksum_verification()
+{
+  const std::vector<std::uint8_t> data{
+    0x00U, 0x01U, 0xF2U, 0x03U,
+    0xF4U, 0xF5U, 0xF6U, 0xF7U
+  };
+  constexpr std::uint16_t received_checksum = 0x220DU;
+
+  if (!flow_control::checksum16_verify(
+        data,
+        received_checksum
+      )) {
+    std::cerr << "FAIL: valid checksum was rejected\n";
+    return 1;
+  }
+
+  std::cout << "PASS: valid checksum verification\n";
+  return 0;
+}
+
 }  // namespace
 
 int main()
@@ -88,6 +108,7 @@ int main()
   failures += test_even_length_checksum();
   failures += test_odd_length_checksum();
   failures += test_empty_input_checksum();
+  failures += test_valid_checksum_verification();
 
   return failures == 0 ? 0 : 1;
 }

@@ -25,6 +25,18 @@ std::uint16_t checksum16_compute(
   const std::vector<std::uint8_t>& data
 );
 
+/**
+ * @brief Verifies data against a received 16-bit checksum.
+ *
+ * @param data Received data bytes.
+ * @param received_checksum Checksum transmitted with the data.
+ * @return `true` when no checksum error is detected; otherwise `false`.
+ */
+bool checksum16_verify(
+  const std::vector<std::uint8_t>& data,
+  std::uint16_t received_checksum
+);
+
 }  // namespace flow_control
 
 #endif
