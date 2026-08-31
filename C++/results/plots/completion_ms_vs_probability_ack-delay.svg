@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="460" viewBox="0 0 760 460" role="img">
+<title>Completion time versus ACK-path excessive delay (loss)</title>
+<desc>Three ARQ protocols compared as the ack-path excessive delay (loss) probability rises from 0.0 to 0.5, all other impairment paths held at zero. Source: results/experiments.csv.</desc>
+<rect x="0" y="0" width="760" height="460" fill="#ffffff"/>
+<g font-family="Helvetica, Arial, sans-serif" fill="#1f2933">
+<text x="380" y="30" text-anchor="middle" font-size="17" font-weight="bold">Completion time versus ACK-path excessive delay (loss)</text>
+<text x="380" y="50" text-anchor="middle" font-size="12" fill="#5b6670">CRC-16, 46-byte payload, 4096-byte input, window 8, seed 20260831</text>
+<line x1="96" y1="352" x2="736" y2="352" stroke="#dde3e8" stroke-width="1"/>
+<text x="86" y="356" text-anchor="end" font-size="11" fill="#5b6670">10</text>
+<line x1="96" y1="256" x2="736" y2="256" stroke="#dde3e8" stroke-width="1"/>
+<text x="86" y="260" text-anchor="end" font-size="11" fill="#5b6670">100</text>
+<line x1="96" y1="160" x2="736" y2="160" stroke="#dde3e8" stroke-width="1"/>
+<text x="86" y="164" text-anchor="end" font-size="11" fill="#5b6670">1000</text>
+<line x1="96" y1="64" x2="736" y2="64" stroke="#dde3e8" stroke-width="1"/>
+<text x="86" y="68" text-anchor="end" font-size="11" fill="#5b6670">10000</text>
+<line x1="96" y1="64" x2="96" y2="352" stroke="#1f2933" stroke-width="1.5"/>
+<line x1="96" y1="352" x2="736" y2="352" stroke="#1f2933" stroke-width="1.5"/>
+<line x1="96" y1="352" x2="96" y2="357" stroke="#1f2933" stroke-width="1"/>
+<text x="96" y="372" text-anchor="middle" font-size="11">0.0</text>
+<text x="96" y="385" text-anchor="middle" font-size="10" fill="#5b6670">(none)</text>
+<line x1="224" y1="352" x2="224" y2="357" stroke="#1f2933" stroke-width="1"/>
+<text x="224" y="372" text-anchor="middle" font-size="11">0.1</text>
+<line x1="352" y1="352" x2="352" y2="357" stroke="#1f2933" stroke-width="1"/>
+<text x="352" y="372" text-anchor="middle" font-size="11">0.2</text>
+<line x1="480" y1="352" x2="480" y2="357" stroke="#1f2933" stroke-width="1"/>
+<text x="480" y="372" text-anchor="middle" font-size="11">0.3</text>
+<line x1="608" y1="352" x2="608" y2="357" stroke="#1f2933" stroke-width="1"/>
+<text x="608" y="372" text-anchor="middle" font-size="11">0.4</text>
+<line x1="736" y1="352" x2="736" y2="357" stroke="#1f2933" stroke-width="1"/>
+<text x="736" y="372" text-anchor="middle" font-size="11">0.5</text>
+<text x="416" y="408" text-anchor="middle" font-size="12">ACK-path excessive delay (loss) probability</text>
+<text transform="translate(22 208) rotate(-90)" text-anchor="middle" font-size="12">Completion time (ms, logarithmic)</text>
+<polyline points="96,259.932 224,229.24 352,205.845 480,193.945 608,181.506 736,156.331" fill="none" stroke="#1b6ca8" stroke-width="2" stroke-linejoin="round" stroke-dasharray="none"/>
+<circle cx="96" cy="259.932" r="4.5" fill="#1b6ca8" data-run="stop-and-wait__none" data-protocol="stop-and-wait" data-probability="0.0" data-metric="completion_ms" data-value="91"><title>Stop-and-Wait at 0.0: 91</title></circle>
+<circle cx="224" cy="229.24" r="4.5" fill="#1b6ca8" data-run="stop-and-wait__ack-delay__0.1" data-protocol="stop-and-wait" data-probability="0.1" data-metric="completion_ms" data-value="190"><title>Stop-and-Wait at 0.1: 190</title></circle>
+<circle cx="352" cy="205.845" r="4.5" fill="#1b6ca8" data-run="stop-and-wait__ack-delay__0.2" data-protocol="stop-and-wait" data-probability="0.2" data-metric="completion_ms" data-value="333"><title>Stop-and-Wait at 0.2: 333</title></circle>
+<circle cx="480" cy="193.945" r="4.5" fill="#1b6ca8" data-run="stop-and-wait__ack-delay__0.3" data-protocol="stop-and-wait" data-probability="0.3" data-metric="completion_ms" data-value="443"><title>Stop-and-Wait at 0.3: 443</title></circle>
+<circle cx="608" cy="181.506" r="4.5" fill="#1b6ca8" data-run="stop-and-wait__ack-delay__0.4" data-protocol="stop-and-wait" data-probability="0.4" data-metric="completion_ms" data-value="597"><title>Stop-and-Wait at 0.4: 597</title></circle>
+<circle cx="736" cy="156.331" r="4.5" fill="#1b6ca8" data-run="stop-and-wait__ack-delay__0.5" data-protocol="stop-and-wait" data-probability="0.5" data-metric="completion_ms" data-value="1092"><title>Stop-and-Wait at 0.5: 1092</title></circle>
+<polyline points="96,341.061 224,341.061 352,341.061 480,337.972 608,337.972 736,337.972" fill="none" stroke="#c2410c" stroke-width="2" stroke-linejoin="round" stroke-dasharray="8 4"/>
+<circle cx="96" cy="341.061" r="4" fill="#c2410c" data-run="go-back-n__none" data-protocol="go-back-n" data-probability="0.0" data-metric="completion_ms" data-value="13"><title>Go-Back-N at 0.0: 13</title></circle>
+<circle cx="224" cy="341.061" r="4" fill="#c2410c" data-run="go-back-n__ack-delay__0.1" data-protocol="go-back-n" data-probability="0.1" data-metric="completion_ms" data-value="13"><title>Go-Back-N at 0.1: 13</title></circle>
+<circle cx="352" cy="341.061" r="4" fill="#c2410c" data-run="go-back-n__ack-delay__0.2" data-protocol="go-back-n" data-probability="0.2" data-metric="completion_ms" data-value="13"><title>Go-Back-N at 0.2: 13</title></circle>
+<circle cx="480" cy="337.972" r="4" fill="#c2410c" data-run="go-back-n__ack-delay__0.3" data-protocol="go-back-n" data-probability="0.3" data-metric="completion_ms" data-value="14"><title>Go-Back-N at 0.3: 14</title></circle>
+<circle cx="608" cy="337.972" r="4" fill="#c2410c" data-run="go-back-n__ack-delay__0.4" data-protocol="go-back-n" data-probability="0.4" data-metric="completion_ms" data-value="14"><title>Go-Back-N at 0.4: 14</title></circle>
+<circle cx="736" cy="337.972" r="4" fill="#c2410c" data-run="go-back-n__ack-delay__0.5" data-protocol="go-back-n" data-probability="0.5" data-metric="completion_ms" data-value="14"><title>Go-Back-N at 0.5: 14</title></circle>
+<polyline points="96,341.061 224,267.442 352,244.425 480,235.887 608,220.913 736,197.377" fill="none" stroke="#2f7d32" stroke-width="2" stroke-linejoin="round" stroke-dasharray="3 3"/>
+<circle cx="96" cy="341.061" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2" data-run="selective-repeat__none" data-protocol="selective-repeat" data-probability="0.0" data-metric="completion_ms" data-value="13"><title>Selective Repeat at 0.0: 13</title></circle>
+<circle cx="224" cy="267.442" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2" data-run="selective-repeat__ack-delay__0.1" data-protocol="selective-repeat" data-probability="0.1" data-metric="completion_ms" data-value="76"><title>Selective Repeat at 0.1: 76</title></circle>
+<circle cx="352" cy="244.425" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2" data-run="selective-repeat__ack-delay__0.2" data-protocol="selective-repeat" data-probability="0.2" data-metric="completion_ms" data-value="132"><title>Selective Repeat at 0.2: 132</title></circle>
+<circle cx="480" cy="235.887" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2" data-run="selective-repeat__ack-delay__0.3" data-protocol="selective-repeat" data-probability="0.3" data-metric="completion_ms" data-value="162"><title>Selective Repeat at 0.3: 162</title></circle>
+<circle cx="608" cy="220.913" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2" data-run="selective-repeat__ack-delay__0.4" data-protocol="selective-repeat" data-probability="0.4" data-metric="completion_ms" data-value="232"><title>Selective Repeat at 0.4: 232</title></circle>
+<circle cx="736" cy="197.377" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2" data-run="selective-repeat__ack-delay__0.5" data-protocol="selective-repeat" data-probability="0.5" data-metric="completion_ms" data-value="408"><title>Selective Repeat at 0.5: 408</title></circle>
+<line x1="96" y1="434" x2="118" y2="434" stroke="#1b6ca8" stroke-width="2" stroke-dasharray="none"/>
+<circle cx="107" cy="434" r="4.5" fill="#1b6ca8"/>
+<text x="125" y="438" font-size="12">Stop-and-Wait</text>
+<line x1="286" y1="434" x2="308" y2="434" stroke="#c2410c" stroke-width="2" stroke-dasharray="8 4"/>
+<circle cx="297" cy="434" r="4" fill="#c2410c"/>
+<text x="315" y="438" font-size="12">Go-Back-N</text>
+<line x1="476" y1="434" x2="498" y2="434" stroke="#2f7d32" stroke-width="2" stroke-dasharray="3 3"/>
+<circle cx="487" cy="434" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2"/>
+<text x="505" y="438" font-size="12">Selective Repeat</text>
+</g>
+</svg>

@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="460" viewBox="0 0 760 460" role="img">
+<title>Goodput versus DATA-path excessive delay (loss)</title>
+<desc>Three ARQ protocols compared as the data-path excessive delay (loss) probability rises from 0.0 to 0.5, all other impairment paths held at zero. Source: results/experiments.csv.</desc>
+<rect x="0" y="0" width="760" height="460" fill="#ffffff"/>
+<g font-family="Helvetica, Arial, sans-serif" fill="#1f2933">
+<text x="380" y="30" text-anchor="middle" font-size="17" font-weight="bold">Goodput versus DATA-path excessive delay (loss)</text>
+<text x="380" y="50" text-anchor="middle" font-size="12" fill="#5b6670">CRC-16, 46-byte payload, 4096-byte input, window 8, seed 20260831</text>
+<line x1="96" y1="352" x2="736" y2="352" stroke="#dde3e8" stroke-width="1"/>
+<text x="86" y="356" text-anchor="end" font-size="11" fill="#5b6670">100</text>
+<line x1="96" y1="280" x2="736" y2="280" stroke="#dde3e8" stroke-width="1"/>
+<text x="86" y="284" text-anchor="end" font-size="11" fill="#5b6670">1000</text>
+<line x1="96" y1="208" x2="736" y2="208" stroke="#dde3e8" stroke-width="1"/>
+<text x="86" y="212" text-anchor="end" font-size="11" fill="#5b6670">10000</text>
+<line x1="96" y1="136" x2="736" y2="136" stroke="#dde3e8" stroke-width="1"/>
+<text x="86" y="140" text-anchor="end" font-size="11" fill="#5b6670">100000</text>
+<line x1="96" y1="64" x2="736" y2="64" stroke="#dde3e8" stroke-width="1"/>
+<text x="86" y="68" text-anchor="end" font-size="11" fill="#5b6670">1e+06</text>
+<line x1="96" y1="64" x2="96" y2="352" stroke="#1f2933" stroke-width="1.5"/>
+<line x1="96" y1="352" x2="736" y2="352" stroke="#1f2933" stroke-width="1.5"/>
+<line x1="96" y1="352" x2="96" y2="357" stroke="#1f2933" stroke-width="1"/>
+<text x="96" y="372" text-anchor="middle" font-size="11">0.0</text>
+<text x="96" y="385" text-anchor="middle" font-size="10" fill="#5b6670">(none)</text>
+<line x1="224" y1="352" x2="224" y2="357" stroke="#1f2933" stroke-width="1"/>
+<text x="224" y="372" text-anchor="middle" font-size="11">0.1</text>
+<line x1="352" y1="352" x2="352" y2="357" stroke="#1f2933" stroke-width="1"/>
+<text x="352" y="372" text-anchor="middle" font-size="11">0.2</text>
+<line x1="480" y1="352" x2="480" y2="357" stroke="#1f2933" stroke-width="1"/>
+<text x="480" y="372" text-anchor="middle" font-size="11">0.3</text>
+<line x1="608" y1="352" x2="608" y2="357" stroke="#1f2933" stroke-width="1"/>
+<text x="608" y="372" text-anchor="middle" font-size="11">0.4</text>
+<line x1="736" y1="352" x2="736" y2="357" stroke="#1f2933" stroke-width="1"/>
+<text x="736" y="372" text-anchor="middle" font-size="11">0.5</text>
+<text x="416" y="408" text-anchor="middle" font-size="12">DATA-path excessive delay (loss) probability</text>
+<text transform="translate(22 208) rotate(-90)" text-anchor="middle" font-size="12">Goodput (bytes/second, logarithmic)</text>
+<polyline points="96,160.961 224,185.74 352,202.542 480,218.606 608,230.902 736,244.33" fill="none" stroke="#1b6ca8" stroke-width="2" stroke-linejoin="round" stroke-dasharray="none"/>
+<circle cx="96" cy="160.961" r="4.5" fill="#1b6ca8" data-run="stop-and-wait__none" data-protocol="stop-and-wait" data-probability="0.0" data-metric="goodput_bytes_per_second" data-value="45010.989011"><title>Stop-and-Wait at 0.0: 45010.989011</title></circle>
+<circle cx="224" cy="185.74" r="4.5" fill="#1b6ca8" data-run="stop-and-wait__data-delay__0.1" data-protocol="stop-and-wait" data-probability="0.1" data-metric="goodput_bytes_per_second" data-value="20378.109453"><title>Stop-and-Wait at 0.1: 20378.109453</title></circle>
+<circle cx="352" cy="202.542" r="4.5" fill="#1b6ca8" data-run="stop-and-wait__data-delay__0.2" data-protocol="stop-and-wait" data-probability="0.2" data-metric="goodput_bytes_per_second" data-value="11906.976744"><title>Stop-and-Wait at 0.2: 11906.976744</title></circle>
+<circle cx="480" cy="218.606" r="4.5" fill="#1b6ca8" data-run="stop-and-wait__data-delay__0.3" data-protocol="stop-and-wait" data-probability="0.3" data-metric="goodput_bytes_per_second" data-value="7123.478261"><title>Stop-and-Wait at 0.3: 7123.478261</title></circle>
+<circle cx="608" cy="230.902" r="4.5" fill="#1b6ca8" data-run="stop-and-wait__data-delay__0.4" data-protocol="stop-and-wait" data-probability="0.4" data-metric="goodput_bytes_per_second" data-value="4807.511737"><title>Stop-and-Wait at 0.4: 4807.511737</title></circle>
+<circle cx="736" cy="244.33" r="4.5" fill="#1b6ca8" data-run="stop-and-wait__data-delay__0.5" data-protocol="stop-and-wait" data-probability="0.5" data-metric="goodput_bytes_per_second" data-value="3129.106188"><title>Stop-and-Wait at 0.5: 3129.106188</title></circle>
+<polyline points="96,100.114 224,168.819 352,191.415 480,220.403 608,299.819 736,309.602" fill="none" stroke="#c2410c" stroke-width="2" stroke-linejoin="round" stroke-dasharray="8 4"/>
+<circle cx="96" cy="100.114" r="4" fill="#c2410c" data-run="go-back-n__none" data-protocol="go-back-n" data-probability="0.0" data-metric="goodput_bytes_per_second" data-value="315076.923077"><title>Go-Back-N at 0.0: 315076.923077</title></circle>
+<circle cx="224" cy="168.819" r="4" fill="#c2410c" data-run="go-back-n__data-delay__0.1" data-protocol="go-back-n" data-probability="0.1" data-metric="goodput_bytes_per_second" data-value="35008.547009"><title>Go-Back-N at 0.1: 35008.547009</title></circle>
+<circle cx="352" cy="191.415" r="4" fill="#c2410c" data-run="go-back-n__data-delay__0.2" data-protocol="go-back-n" data-probability="0.2" data-metric="goodput_bytes_per_second" data-value="16995.850622"><title>Go-Back-N at 0.2: 16995.850622</title></circle>
+<circle cx="480" cy="220.403" r="4" fill="#c2410c" data-run="go-back-n__data-delay__0.3" data-protocol="go-back-n" data-probability="0.3" data-metric="goodput_bytes_per_second" data-value="6725.779967"><title>Go-Back-N at 0.3: 6725.779967</title></circle>
+<circle cx="608" cy="299.819" r="4" fill="#c2410c" data-run="go-back-n__data-delay__0.4" data-protocol="go-back-n" data-probability="0.4" data-metric="goodput_bytes_per_second" data-value="530.569948"><title>Go-Back-N at 0.4: 530.569948</title></circle>
+<circle cx="736" cy="309.602" r="4" fill="#c2410c" data-run="go-back-n__data-delay__0.5" data-protocol="go-back-n" data-probability="0.5" data-metric="goodput_bytes_per_second" data-value="388.025767"><title>Go-Back-N at 0.5: 388.025767</title></circle>
+<polyline points="96,100.114 224,163.278 352,175.957 480,190.36 608,193.058 736,201.053" fill="none" stroke="#2f7d32" stroke-width="2" stroke-linejoin="round" stroke-dasharray="3 3"/>
+<circle cx="96" cy="100.114" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2" data-run="selective-repeat__none" data-protocol="selective-repeat" data-probability="0.0" data-metric="goodput_bytes_per_second" data-value="315076.923077"><title>Selective Repeat at 0.0: 315076.923077</title></circle>
+<circle cx="224" cy="163.278" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2" data-run="selective-repeat__data-delay__0.1" data-protocol="selective-repeat" data-probability="0.1" data-metric="goodput_bytes_per_second" data-value="41795.918367"><title>Selective Repeat at 0.1: 41795.918367</title></circle>
+<circle cx="352" cy="175.957" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2" data-run="selective-repeat__data-delay__0.2" data-protocol="selective-repeat" data-probability="0.2" data-metric="goodput_bytes_per_second" data-value="27863.945578"><title>Selective Repeat at 0.2: 27863.945578</title></circle>
+<circle cx="480" cy="190.36" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2" data-run="selective-repeat__data-delay__0.3" data-protocol="selective-repeat" data-probability="0.3" data-metric="goodput_bytes_per_second" data-value="17579.399142"><title>Selective Repeat at 0.3: 17579.399142</title></circle>
+<circle cx="608" cy="193.058" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2" data-run="selective-repeat__data-delay__0.4" data-protocol="selective-repeat" data-probability="0.4" data-metric="goodput_bytes_per_second" data-value="16125.984252"><title>Selective Repeat at 0.4: 16125.984252</title></circle>
+<circle cx="736" cy="201.053" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2" data-run="selective-repeat__data-delay__0.5" data-protocol="selective-repeat" data-probability="0.5" data-metric="goodput_bytes_per_second" data-value="12487.804878"><title>Selective Repeat at 0.5: 12487.804878</title></circle>
+<line x1="96" y1="434" x2="118" y2="434" stroke="#1b6ca8" stroke-width="2" stroke-dasharray="none"/>
+<circle cx="107" cy="434" r="4.5" fill="#1b6ca8"/>
+<text x="125" y="438" font-size="12">Stop-and-Wait</text>
+<line x1="286" y1="434" x2="308" y2="434" stroke="#c2410c" stroke-width="2" stroke-dasharray="8 4"/>
+<circle cx="297" cy="434" r="4" fill="#c2410c"/>
+<text x="315" y="438" font-size="12">Go-Back-N</text>
+<line x1="476" y1="434" x2="498" y2="434" stroke="#2f7d32" stroke-width="2" stroke-dasharray="3 3"/>
+<circle cx="487" cy="434" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2"/>
+<text x="505" y="438" font-size="12">Selective Repeat</text>
+</g>
+</svg>

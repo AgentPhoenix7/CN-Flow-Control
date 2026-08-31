@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="460" viewBox="0 0 760 460" role="img">
+<title>Retransmitted data frames versus ACK-path excessive delay (loss)</title>
+<desc>Three ARQ protocols compared as the ack-path excessive delay (loss) probability rises from 0.0 to 0.5, all other impairment paths held at zero. Source: results/experiments.csv.</desc>
+<rect x="0" y="0" width="760" height="460" fill="#ffffff"/>
+<g font-family="Helvetica, Arial, sans-serif" fill="#1f2933">
+<text x="380" y="30" text-anchor="middle" font-size="17" font-weight="bold">Retransmitted data frames versus ACK-path excessive delay (loss)</text>
+<text x="380" y="50" text-anchor="middle" font-size="12" fill="#5b6670">CRC-16, 46-byte payload, 4096-byte input, window 8, seed 20260831</text>
+<line x1="96" y1="352" x2="736" y2="352" stroke="#dde3e8" stroke-width="1"/>
+<text x="86" y="356" text-anchor="end" font-size="11" fill="#5b6670">0</text>
+<line x1="96" y1="294.4" x2="736" y2="294.4" stroke="#dde3e8" stroke-width="1"/>
+<text x="86" y="298.4" text-anchor="end" font-size="11" fill="#5b6670">20</text>
+<line x1="96" y1="236.8" x2="736" y2="236.8" stroke="#dde3e8" stroke-width="1"/>
+<text x="86" y="240.8" text-anchor="end" font-size="11" fill="#5b6670">40</text>
+<line x1="96" y1="179.2" x2="736" y2="179.2" stroke="#dde3e8" stroke-width="1"/>
+<text x="86" y="183.2" text-anchor="end" font-size="11" fill="#5b6670">60</text>
+<line x1="96" y1="121.6" x2="736" y2="121.6" stroke="#dde3e8" stroke-width="1"/>
+<text x="86" y="125.6" text-anchor="end" font-size="11" fill="#5b6670">80</text>
+<line x1="96" y1="64" x2="736" y2="64" stroke="#dde3e8" stroke-width="1"/>
+<text x="86" y="68" text-anchor="end" font-size="11" fill="#5b6670">100</text>
+<line x1="96" y1="64" x2="96" y2="352" stroke="#1f2933" stroke-width="1.5"/>
+<line x1="96" y1="352" x2="736" y2="352" stroke="#1f2933" stroke-width="1.5"/>
+<line x1="96" y1="352" x2="96" y2="357" stroke="#1f2933" stroke-width="1"/>
+<text x="96" y="372" text-anchor="middle" font-size="11">0.0</text>
+<text x="96" y="385" text-anchor="middle" font-size="10" fill="#5b6670">(none)</text>
+<line x1="224" y1="352" x2="224" y2="357" stroke="#1f2933" stroke-width="1"/>
+<text x="224" y="372" text-anchor="middle" font-size="11">0.1</text>
+<line x1="352" y1="352" x2="352" y2="357" stroke="#1f2933" stroke-width="1"/>
+<text x="352" y="372" text-anchor="middle" font-size="11">0.2</text>
+<line x1="480" y1="352" x2="480" y2="357" stroke="#1f2933" stroke-width="1"/>
+<text x="480" y="372" text-anchor="middle" font-size="11">0.3</text>
+<line x1="608" y1="352" x2="608" y2="357" stroke="#1f2933" stroke-width="1"/>
+<text x="608" y="372" text-anchor="middle" font-size="11">0.4</text>
+<line x1="736" y1="352" x2="736" y2="357" stroke="#1f2933" stroke-width="1"/>
+<text x="736" y="372" text-anchor="middle" font-size="11">0.5</text>
+<text x="416" y="408" text-anchor="middle" font-size="12">ACK-path excessive delay (loss) probability</text>
+<text transform="translate(22 208) rotate(-90)" text-anchor="middle" font-size="12">Retransmitted data frames</text>
+<polyline points="96,352 224,326.08 352,288.64 480,259.84 608,219.52 736,89.92" fill="none" stroke="#1b6ca8" stroke-width="2" stroke-linejoin="round" stroke-dasharray="none"/>
+<circle cx="96" cy="352" r="4.5" fill="#1b6ca8" data-run="stop-and-wait__none" data-protocol="stop-and-wait" data-probability="0.0" data-metric="retransmissions" data-value="0"><title>Stop-and-Wait at 0.0: 0</title></circle>
+<circle cx="224" cy="326.08" r="4.5" fill="#1b6ca8" data-run="stop-and-wait__ack-delay__0.1" data-protocol="stop-and-wait" data-probability="0.1" data-metric="retransmissions" data-value="9"><title>Stop-and-Wait at 0.1: 9</title></circle>
+<circle cx="352" cy="288.64" r="4.5" fill="#1b6ca8" data-run="stop-and-wait__ack-delay__0.2" data-protocol="stop-and-wait" data-probability="0.2" data-metric="retransmissions" data-value="22"><title>Stop-and-Wait at 0.2: 22</title></circle>
+<circle cx="480" cy="259.84" r="4.5" fill="#1b6ca8" data-run="stop-and-wait__ack-delay__0.3" data-protocol="stop-and-wait" data-probability="0.3" data-metric="retransmissions" data-value="32"><title>Stop-and-Wait at 0.3: 32</title></circle>
+<circle cx="608" cy="219.52" r="4.5" fill="#1b6ca8" data-run="stop-and-wait__ack-delay__0.4" data-protocol="stop-and-wait" data-probability="0.4" data-metric="retransmissions" data-value="46"><title>Stop-and-Wait at 0.4: 46</title></circle>
+<circle cx="736" cy="89.92" r="4.5" fill="#1b6ca8" data-run="stop-and-wait__ack-delay__0.5" data-protocol="stop-and-wait" data-probability="0.5" data-metric="retransmissions" data-value="91"><title>Stop-and-Wait at 0.5: 91</title></circle>
+<polyline points="96,352 224,352 352,352 480,352 608,352 736,352" fill="none" stroke="#c2410c" stroke-width="2" stroke-linejoin="round" stroke-dasharray="8 4"/>
+<circle cx="96" cy="352" r="4" fill="#c2410c" data-run="go-back-n__none" data-protocol="go-back-n" data-probability="0.0" data-metric="retransmissions" data-value="0"><title>Go-Back-N at 0.0: 0</title></circle>
+<circle cx="224" cy="352" r="4" fill="#c2410c" data-run="go-back-n__ack-delay__0.1" data-protocol="go-back-n" data-probability="0.1" data-metric="retransmissions" data-value="0"><title>Go-Back-N at 0.1: 0</title></circle>
+<circle cx="352" cy="352" r="4" fill="#c2410c" data-run="go-back-n__ack-delay__0.2" data-protocol="go-back-n" data-probability="0.2" data-metric="retransmissions" data-value="0"><title>Go-Back-N at 0.2: 0</title></circle>
+<circle cx="480" cy="352" r="4" fill="#c2410c" data-run="go-back-n__ack-delay__0.3" data-protocol="go-back-n" data-probability="0.3" data-metric="retransmissions" data-value="0"><title>Go-Back-N at 0.3: 0</title></circle>
+<circle cx="608" cy="352" r="4" fill="#c2410c" data-run="go-back-n__ack-delay__0.4" data-protocol="go-back-n" data-probability="0.4" data-metric="retransmissions" data-value="0"><title>Go-Back-N at 0.4: 0</title></circle>
+<circle cx="736" cy="352" r="4" fill="#c2410c" data-run="go-back-n__ack-delay__0.5" data-protocol="go-back-n" data-probability="0.5" data-metric="retransmissions" data-value="0"><title>Go-Back-N at 0.5: 0</title></circle>
+<polyline points="96,352 224,326.08 352,288.64 480,259.84 608,219.52 736,89.92" fill="none" stroke="#2f7d32" stroke-width="2" stroke-linejoin="round" stroke-dasharray="3 3"/>
+<circle cx="96" cy="352" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2" data-run="selective-repeat__none" data-protocol="selective-repeat" data-probability="0.0" data-metric="retransmissions" data-value="0"><title>Selective Repeat at 0.0: 0</title></circle>
+<circle cx="224" cy="326.08" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2" data-run="selective-repeat__ack-delay__0.1" data-protocol="selective-repeat" data-probability="0.1" data-metric="retransmissions" data-value="9"><title>Selective Repeat at 0.1: 9</title></circle>
+<circle cx="352" cy="288.64" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2" data-run="selective-repeat__ack-delay__0.2" data-protocol="selective-repeat" data-probability="0.2" data-metric="retransmissions" data-value="22"><title>Selective Repeat at 0.2: 22</title></circle>
+<circle cx="480" cy="259.84" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2" data-run="selective-repeat__ack-delay__0.3" data-protocol="selective-repeat" data-probability="0.3" data-metric="retransmissions" data-value="32"><title>Selective Repeat at 0.3: 32</title></circle>
+<circle cx="608" cy="219.52" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2" data-run="selective-repeat__ack-delay__0.4" data-protocol="selective-repeat" data-probability="0.4" data-metric="retransmissions" data-value="46"><title>Selective Repeat at 0.4: 46</title></circle>
+<circle cx="736" cy="89.92" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2" data-run="selective-repeat__ack-delay__0.5" data-protocol="selective-repeat" data-probability="0.5" data-metric="retransmissions" data-value="91"><title>Selective Repeat at 0.5: 91</title></circle>
+<line x1="96" y1="434" x2="118" y2="434" stroke="#1b6ca8" stroke-width="2" stroke-dasharray="none"/>
+<circle cx="107" cy="434" r="4.5" fill="#1b6ca8"/>
+<text x="125" y="438" font-size="12">Stop-and-Wait</text>
+<line x1="286" y1="434" x2="308" y2="434" stroke="#c2410c" stroke-width="2" stroke-dasharray="8 4"/>
+<circle cx="297" cy="434" r="4" fill="#c2410c"/>
+<text x="315" y="438" font-size="12">Go-Back-N</text>
+<line x1="476" y1="434" x2="498" y2="434" stroke="#2f7d32" stroke-width="2" stroke-dasharray="3 3"/>
+<circle cx="487" cy="434" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2"/>
+<text x="505" y="438" font-size="12">Selective Repeat</text>
+</g>
+</svg>

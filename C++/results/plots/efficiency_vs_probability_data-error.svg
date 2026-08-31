@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="460" viewBox="0 0 760 460" role="img">
+<title>Efficiency versus DATA-path bit corruption</title>
+<desc>Three ARQ protocols compared as the data-path bit corruption probability rises from 0.0 to 0.5, all other impairment paths held at zero. Source: results/experiments.csv. efficiency = unique_payload_bytes / transmitted_frame_bytes: the unique application payload the receiver accepted and delivered, divided by every DATA-frame byte the sender put on the wire, including retransmissions, the 15-byte header, zero padding, and the FCS. It is a dimensionless ratio in (0, 1]; 1.0 would mean every transmitted byte was useful payload delivered exactly once. ACK traffic is not counted, because the sender measures only what it transmits on the DATA path.</desc>
+<rect x="0" y="0" width="760" height="460" fill="#ffffff"/>
+<g font-family="Helvetica, Arial, sans-serif" fill="#1f2933">
+<text x="380" y="30" text-anchor="middle" font-size="17" font-weight="bold">Efficiency versus DATA-path bit corruption</text>
+<text x="380" y="50" text-anchor="middle" font-size="12" fill="#5b6670">CRC-16, 46-byte payload, 4096-byte input, window 8, seed 20260831</text>
+<line x1="96" y1="352" x2="736" y2="352" stroke="#dde3e8" stroke-width="1"/>
+<text x="86" y="356" text-anchor="end" font-size="11" fill="#5b6670">0</text>
+<line x1="96" y1="310.857" x2="736" y2="310.857" stroke="#dde3e8" stroke-width="1"/>
+<text x="86" y="314.857" text-anchor="end" font-size="11" fill="#5b6670">0.1</text>
+<line x1="96" y1="269.714" x2="736" y2="269.714" stroke="#dde3e8" stroke-width="1"/>
+<text x="86" y="273.714" text-anchor="end" font-size="11" fill="#5b6670">0.2</text>
+<line x1="96" y1="228.571" x2="736" y2="228.571" stroke="#dde3e8" stroke-width="1"/>
+<text x="86" y="232.571" text-anchor="end" font-size="11" fill="#5b6670">0.3</text>
+<line x1="96" y1="187.429" x2="736" y2="187.429" stroke="#dde3e8" stroke-width="1"/>
+<text x="86" y="191.429" text-anchor="end" font-size="11" fill="#5b6670">0.4</text>
+<line x1="96" y1="146.286" x2="736" y2="146.286" stroke="#dde3e8" stroke-width="1"/>
+<text x="86" y="150.286" text-anchor="end" font-size="11" fill="#5b6670">0.5</text>
+<line x1="96" y1="105.143" x2="736" y2="105.143" stroke="#dde3e8" stroke-width="1"/>
+<text x="86" y="109.143" text-anchor="end" font-size="11" fill="#5b6670">0.6</text>
+<line x1="96" y1="64" x2="736" y2="64" stroke="#dde3e8" stroke-width="1"/>
+<text x="86" y="68" text-anchor="end" font-size="11" fill="#5b6670">0.7</text>
+<line x1="96" y1="64" x2="96" y2="352" stroke="#1f2933" stroke-width="1.5"/>
+<line x1="96" y1="352" x2="736" y2="352" stroke="#1f2933" stroke-width="1.5"/>
+<line x1="96" y1="352" x2="96" y2="357" stroke="#1f2933" stroke-width="1"/>
+<text x="96" y="372" text-anchor="middle" font-size="11">0.0</text>
+<text x="96" y="385" text-anchor="middle" font-size="10" fill="#5b6670">(none)</text>
+<line x1="224" y1="352" x2="224" y2="357" stroke="#1f2933" stroke-width="1"/>
+<text x="224" y="372" text-anchor="middle" font-size="11">0.1</text>
+<line x1="352" y1="352" x2="352" y2="357" stroke="#1f2933" stroke-width="1"/>
+<text x="352" y="372" text-anchor="middle" font-size="11">0.2</text>
+<line x1="480" y1="352" x2="480" y2="357" stroke="#1f2933" stroke-width="1"/>
+<text x="480" y="372" text-anchor="middle" font-size="11">0.3</text>
+<line x1="608" y1="352" x2="608" y2="357" stroke="#1f2933" stroke-width="1"/>
+<text x="608" y="372" text-anchor="middle" font-size="11">0.4</text>
+<line x1="736" y1="352" x2="736" y2="357" stroke="#1f2933" stroke-width="1"/>
+<text x="736" y="372" text-anchor="middle" font-size="11">0.5</text>
+<text x="416" y="408" text-anchor="middle" font-size="12">DATA-path bit corruption probability</text>
+<text transform="translate(22 208) rotate(-90)" text-anchor="middle" font-size="12">Efficiency (delivered payload / transmitted frame bytes)</text>
+<polyline points="96,64 224,88.686 352,118.978 480,155.497 608,177.62 736,195.265" fill="none" stroke="#1b6ca8" stroke-width="2" stroke-linejoin="round" stroke-dasharray="none"/>
+<circle cx="96" cy="64" r="4.5" fill="#1b6ca8" data-run="stop-and-wait__none" data-protocol="stop-and-wait" data-probability="0.0" data-metric="efficiency" data-value="0.711111"><title>Stop-and-Wait at 0.0: 0.711111</title></circle>
+<circle cx="224" cy="88.686" r="4.5" fill="#1b6ca8" data-run="stop-and-wait__data-error__0.1" data-protocol="stop-and-wait" data-probability="0.1" data-metric="efficiency" data-value="0.640000"><title>Stop-and-Wait at 0.1: 0.640000</title></circle>
+<circle cx="352" cy="118.978" r="4.5" fill="#1b6ca8" data-run="stop-and-wait__data-error__0.2" data-protocol="stop-and-wait" data-probability="0.2" data-metric="efficiency" data-value="0.566372"><title>Stop-and-Wait at 0.2: 0.566372</title></circle>
+<circle cx="480" cy="155.497" r="4.5" fill="#1b6ca8" data-run="stop-and-wait__data-error__0.3" data-protocol="stop-and-wait" data-probability="0.3" data-metric="efficiency" data-value="0.477612"><title>Stop-and-Wait at 0.3: 0.477612</title></circle>
+<circle cx="608" cy="177.62" r="4.5" fill="#1b6ca8" data-run="stop-and-wait__data-error__0.4" data-protocol="stop-and-wait" data-probability="0.4" data-metric="efficiency" data-value="0.423841"><title>Stop-and-Wait at 0.4: 0.423841</title></circle>
+<circle cx="736" cy="195.265" r="4.5" fill="#1b6ca8" data-run="stop-and-wait__data-error__0.5" data-protocol="stop-and-wait" data-probability="0.5" data-metric="efficiency" data-value="0.380952"><title>Stop-and-Wait at 0.5: 0.380952</title></circle>
+<polyline points="96,64 224,189.46 352,240.897 480,297.82 608,312.404 736,322.044" fill="none" stroke="#c2410c" stroke-width="2" stroke-linejoin="round" stroke-dasharray="8 4"/>
+<circle cx="96" cy="64" r="4" fill="#c2410c" data-run="go-back-n__none" data-protocol="go-back-n" data-probability="0.0" data-metric="efficiency" data-value="0.711111"><title>Go-Back-N at 0.0: 0.711111</title></circle>
+<circle cx="224" cy="189.46" r="4" fill="#c2410c" data-run="go-back-n__data-error__0.1" data-protocol="go-back-n" data-probability="0.1" data-metric="efficiency" data-value="0.395062"><title>Go-Back-N at 0.1: 0.395062</title></circle>
+<circle cx="352" cy="240.897" r="4" fill="#c2410c" data-run="go-back-n__data-error__0.2" data-protocol="go-back-n" data-probability="0.2" data-metric="efficiency" data-value="0.270042"><title>Go-Back-N at 0.2: 0.270042</title></circle>
+<circle cx="480" cy="297.82" r="4" fill="#c2410c" data-run="go-back-n__data-error__0.3" data-protocol="go-back-n" data-probability="0.3" data-metric="efficiency" data-value="0.131687"><title>Go-Back-N at 0.3: 0.131687</title></circle>
+<circle cx="608" cy="312.404" r="4" fill="#c2410c" data-run="go-back-n__data-error__0.4" data-protocol="go-back-n" data-probability="0.4" data-metric="efficiency" data-value="0.096241"><title>Go-Back-N at 0.4: 0.096241</title></circle>
+<circle cx="736" cy="322.044" r="4" fill="#c2410c" data-run="go-back-n__data-error__0.5" data-protocol="go-back-n" data-probability="0.5" data-metric="efficiency" data-value="0.072810"><title>Go-Back-N at 0.5: 0.072810</title></circle>
+<polyline points="96,64 224,88.686 352,118.978 480,155.497 608,177.62 736,195.265" fill="none" stroke="#2f7d32" stroke-width="2" stroke-linejoin="round" stroke-dasharray="3 3"/>
+<circle cx="96" cy="64" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2" data-run="selective-repeat__none" data-protocol="selective-repeat" data-probability="0.0" data-metric="efficiency" data-value="0.711111"><title>Selective Repeat at 0.0: 0.711111</title></circle>
+<circle cx="224" cy="88.686" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2" data-run="selective-repeat__data-error__0.1" data-protocol="selective-repeat" data-probability="0.1" data-metric="efficiency" data-value="0.640000"><title>Selective Repeat at 0.1: 0.640000</title></circle>
+<circle cx="352" cy="118.978" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2" data-run="selective-repeat__data-error__0.2" data-protocol="selective-repeat" data-probability="0.2" data-metric="efficiency" data-value="0.566372"><title>Selective Repeat at 0.2: 0.566372</title></circle>
+<circle cx="480" cy="155.497" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2" data-run="selective-repeat__data-error__0.3" data-protocol="selective-repeat" data-probability="0.3" data-metric="efficiency" data-value="0.477612"><title>Selective Repeat at 0.3: 0.477612</title></circle>
+<circle cx="608" cy="177.62" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2" data-run="selective-repeat__data-error__0.4" data-protocol="selective-repeat" data-probability="0.4" data-metric="efficiency" data-value="0.423841"><title>Selective Repeat at 0.4: 0.423841</title></circle>
+<circle cx="736" cy="195.265" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2" data-run="selective-repeat__data-error__0.5" data-protocol="selective-repeat" data-probability="0.5" data-metric="efficiency" data-value="0.380952"><title>Selective Repeat at 0.5: 0.380952</title></circle>
+<line x1="96" y1="434" x2="118" y2="434" stroke="#1b6ca8" stroke-width="2" stroke-dasharray="none"/>
+<circle cx="107" cy="434" r="4.5" fill="#1b6ca8"/>
+<text x="125" y="438" font-size="12">Stop-and-Wait</text>
+<line x1="286" y1="434" x2="308" y2="434" stroke="#c2410c" stroke-width="2" stroke-dasharray="8 4"/>
+<circle cx="297" cy="434" r="4" fill="#c2410c"/>
+<text x="315" y="438" font-size="12">Go-Back-N</text>
+<line x1="476" y1="434" x2="498" y2="434" stroke="#2f7d32" stroke-width="2" stroke-dasharray="3 3"/>
+<circle cx="487" cy="434" r="7.5" fill="none" stroke="#2f7d32" stroke-width="2.2"/>
+<text x="505" y="438" font-size="12">Selective Repeat</text>
+</g>
+</svg>
