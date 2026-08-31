@@ -52,6 +52,7 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - Added mutation-checked coverage that rejects a corrupted received checksum.
 - Completed Checksum-16 verification coverage with the valid empty-input checksum boundary.
 - Added compile-time frame/FCS configuration constants and a strict header contract target.
+- Ported the generic MSB-first CRC engine with CRC-8/10/16/32 parameters, verification, known vectors, empty input, corruption rejection, and invalid-parameter checks.
 
 ## Current Repository State
 
@@ -60,15 +61,16 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - `C++/README.md` documents the confirmed wire format and protocol behavior.
 - `C++/Makefile` compiles every current source file into ignored object files and provides focused checksum and configuration targets.
 - `C++/include/config.hpp` owns the 15-byte header, 64–1518-byte frame, FCS-size, 1499-byte maximum-payload, and 46-byte default-payload constants; `check_config_header` enforces them at compile time.
+- `C++/include/crc.hpp` and `C++/src/crc.cpp` provide generic widths 1–32 and the four required parameter sets; `test_crc` covers five behavioral groups.
 - The root and `C++/` `.gitignore` files contain verified project-specific rules.
 - `C++/include/checksum.hpp` declares Checksum-16 computation and verification; `C++/src/checksum.cpp` implements both operations, and `C++/tests/test_checksum.cpp` covers three computation cases plus valid, corrupted-payload, corrupted-checksum, and empty-input verification.
-- The remaining C++ headers, sources, tests, tools, and report template remain empty placeholders.
+- Error injection, framing, records, channel/timer/metrics/socket, ARQ, applications, tools, and the report remain empty placeholders.
 - The root `pyproject.toml` and `uv.lock` describe an unpackaged virtual project, no root `src/` package tree remains, and `.venv` is synchronized.
 - No sender/receiver executables are linked; all seven focused Checksum-16 cases pass, but CRC and the remaining project test suite do not exist yet.
 
 ## Current Exact Step
 
-Configuration and Checksum-16 are GREEN. The immediate next step is to add known-vector CRC tests for widths 8, 10, 16, and 32, observe the missing-API RED failure, then implement the generic MSB-first CRC.
+Configuration, Checksum-16, and CRC are GREEN. The immediate next step is to add deterministic MSB-indexed bit/burst mutation and RNG/probability tests before implementing error injection.
 
 ## Recommended Implementation Order
 
@@ -110,6 +112,9 @@ Configuration and Checksum-16 are GREEN. The immediate next step is to add known
 - Seven focused Checksum-16 cases pass; do not report a full-suite test count.
 - `timeout 30s env -u MAKEFLAGS -u MFLAGS /usr/bin/make -C C++ check_config_header` compiles and runs the configuration contract successfully.
 - The first configuration compile caught the invalid assumption that a 46-byte payload itself reaches the 64-byte minimum; the corrected invariant leaves zero padding to frame serialization and constrains the valid payload range.
+- `test_crc` first failed to compile because the CRC API was absent, then passed five groups after implementation: parameter constants, four known vectors, empty input, verification, and invalid-parameter rejection.
+- `timeout 30s env -u MAKEFLAGS -u MFLAGS /usr/bin/make -C C++ test` exited 0 for configuration, seven checksum cases, and five CRC groups.
+- `timeout 30s env -u MAKEFLAGS -u MFLAGS /usr/bin/make -C C++ all` compiled the CRC translation unit with strict warnings and exited 0.
 
 ## How to Update This File
 
