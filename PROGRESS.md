@@ -48,6 +48,7 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - Completed `C++/README.md` with the framing, FCS, TCP-record, and ARQ protocol contracts.
 - Added the initial strict C++17 Makefile, compiling all 14 source translation units with `-Wall -Wextra -Wpedantic -Werror`.
 - Implemented Checksum-16 verification for valid data/checksum pairs using one's-complement folded addition.
+- Added mutation-checked coverage that rejects a corrupted payload paired with the original checksum.
 
 ## Current Repository State
 
@@ -56,14 +57,14 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - `C++/README.md` documents the confirmed wire format and protocol behavior.
 - `C++/Makefile` compiles every current source file into ignored object files and provides a focused `test_checksum` target.
 - The root and `C++/` `.gitignore` files contain verified project-specific rules.
-- `C++/include/checksum.hpp` declares Checksum-16 computation and verification; `C++/src/checksum.cpp` implements computation plus valid-pair verification, and `C++/tests/test_checksum.cpp` covers the three computation cases and valid verification.
+- `C++/include/checksum.hpp` declares Checksum-16 computation and verification; `C++/src/checksum.cpp` implements both operations, and `C++/tests/test_checksum.cpp` covers computation, valid verification, and corrupted-payload rejection.
 - The remaining C++ headers, sources, tests, tools, and report template remain empty placeholders.
 - The root `pyproject.toml` and `uv.lock` describe an unpackaged virtual project, no root `src/` package tree remains, and `.venv` is synchronized.
-- No sender/receiver executables are linked; four focused Checksum-16 cases pass, but rejection cases and a full project test suite do not exist yet.
+- No sender/receiver executables are linked; five focused Checksum-16 cases pass, but corrupted-checksum/empty-verification cases and a full project test suite do not exist yet.
 
 ## Current Exact Step
 
-Checksum-16 valid-pair verification is GREEN. The immediate next step is to add a corrupted-payload rejection test, observe the expected RED result, implement only the required behavior if it fails, and commit the verified slice.
+Checksum-16 corrupted-payload rejection is GREEN. The immediate next step is to add and mutation-check corrupted-checksum rejection, then commit that verified test slice.
 
 ## Recommended Implementation Order
 
@@ -99,7 +100,8 @@ Checksum-16 valid-pair verification is GREEN. The immediate next step is to add 
 - After implementing valid-pair verification, `timeout 30s env -u MAKEFLAGS -u MFLAGS /usr/bin/make -C C++ test_checksum` exited 0 and printed `PASS` for the three computation cases plus valid checksum verification.
 - `timeout 30s env -u MAKEFLAGS -u MFLAGS /usr/bin/make -C C++ all` exited 0 with all strict C++17 translation units current.
 - `timeout 5s git diff --check` exited 0.
-- Four focused Checksum-16 cases pass; do not report a full-suite test count.
+- With the verifier temporarily mutated to accept every pair, the corrupted-payload test printed `FAIL: corrupted payload was accepted` and the focused target exited nonzero; restoring the implementation made the same target pass.
+- Five focused Checksum-16 cases pass; do not report a full-suite test count.
 
 ## How to Update This File
 
