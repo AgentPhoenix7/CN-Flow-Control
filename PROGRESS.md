@@ -149,7 +149,7 @@ All three ARQ state machines (Stop-and-Wait, Go-Back-N, Selective Repeat) are im
 - The current full `make -C C++ test` exits 0 with local socket permission for configuration plus 44 printed unit-test groups, and `make -C C++ all` compiles all implemented translation units with strict warnings.
 - `make -C C++ test_stop_and_wait` compiled and passed all five cases against the pre-existing test file once `protocol.hpp`/`stop_and_wait.hpp`/`stop_and_wait.cpp` were implemented (previously empty, so linking failed with undefined references — the expected RED).
 - `test_go_back_n` and `test_selective_repeat` were written first and confirmed RED (undefined-reference link failures against empty `.cpp` files), then each protocol's implementation made its own eight/seven cases pass.
-- `make -C C++ test` exits 0 with all 60 printed test groups across every module (checksum, config, CRC, error injection, frame, record, channel, timer, metrics, socket, Stop-and-Wait, Go-Back-N, Selective Repeat) passing with pristine output.
+- `make -C C++ test` exits 0 with all 65 printed test groups across every module (checksum, config, CRC, error injection, frame, record, channel, timer, metrics, socket, Stop-and-Wait, Go-Back-N, Selective Repeat) passing with pristine output.
 - `make -C C++ all` compiles every translation unit, including the three new ARQ sources, with `-Wall -Wextra -Wpedantic -Werror` and no warnings.
 
 ## How to Update This File

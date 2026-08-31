@@ -151,7 +151,7 @@ int test_receiver_cumulative_delivery_and_duplicate()
       || first.delivered_indices != std::vector<std::size_t>{0U}
       || !second.ack.has_value() || *second.ack != 1U
       || second.delivered_indices != std::vector<std::size_t>{1U}
-      || !duplicate.out_of_order || !duplicate.duplicate
+      || duplicate.out_of_order || !duplicate.duplicate
       || !duplicate.ack.has_value() || *duplicate.ack != 1U
       || !duplicate.delivered_indices.empty()) {
     std::cerr << "FAIL: GBN receiver cumulative delivery / duplicate\n";

@@ -40,7 +40,12 @@ public:
     std::uint8_t start_sequence = 0U
   );
 
-  /** Returns pending retransmissions (on timeout) plus any new sends. */
+  /**
+   * @brief Returns pending retransmissions (on timeout) plus any new sends.
+   * Each retransmission is reported at most once per `timeout()` call and
+   * each new send at most once, so repeated calls without an intervening
+   * `timeout()` or freed window slot return an empty vector.
+   */
   std::vector<Transmission> transmissions();
 
   /**
@@ -72,11 +77,19 @@ private:
  * Receiver side of Selective Repeat: accepts and independently
  * acknowledges any frame within the receive window, buffering
  * out-of-order frames and delivering only contiguous data.
+ *
+ * This state machine tracks position purely by `frame_index`, not by
+ * reconstructing expected sequence numbers, so it does not independently
+ * validate the wire `sequence` passed to `receive()` -- it trusts the
+ * caller's already-verified frame and echoes that sequence back in the ACK.
  */
 class SelectiveRepeatReceiver
 {
 public:
-  /** @param window_size Maximum frames the receiver may buffer ahead. */
+  /**
+   * @param window_size Maximum frames the receiver may buffer ahead, 1--128.
+   * @throws std::invalid_argument if window_size is 0 or exceeds 128.
+   */
   explicit SelectiveRepeatReceiver(std::size_t window_size);
 
   /**

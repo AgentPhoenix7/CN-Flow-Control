@@ -94,10 +94,15 @@ ReceiveResult GoBackNReceiver::receive(
     return result;
   }
 
+  if (has_received_ && sequence == last_acked_sequence_) {
+    result.ack = last_acked_sequence_;
+    result.duplicate = true;
+    return result;
+  }
+
   result.out_of_order = true;
   if (has_received_) {
     result.ack = last_acked_sequence_;
-    result.duplicate = (sequence == last_acked_sequence_);
   }
   return result;
 }

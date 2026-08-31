@@ -32,7 +32,12 @@ public:
     std::uint8_t start_sequence = 0U
   );
 
-  /** Returns the currently outstanding new send or retransmission, if any. */
+  /**
+   * @brief Returns the currently outstanding new send or retransmission,
+   * if any. Each new send is reported at most once (until acknowledged)
+   * and each retransmission at most once per `timeout()` call, so a call
+   * with no state change since the last one returns an empty vector.
+   */
   std::vector<Transmission> transmissions();
 
   /**

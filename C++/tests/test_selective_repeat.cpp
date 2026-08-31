@@ -90,6 +90,28 @@ int test_max_window_rejected()
   return 0;
 }
 
+int test_receiver_max_window_rejected()
+{
+  try {
+    flow_control::SelectiveRepeatReceiver receiver{129U};
+    (void)receiver;
+    std::cerr << "FAIL: SR receiver window > 128 accepted\n";
+    return 1;
+  } catch (const std::invalid_argument&) {
+    // expected
+  }
+  try {
+    flow_control::SelectiveRepeatReceiver receiver{0U};
+    (void)receiver;
+    std::cerr << "FAIL: SR receiver window of 0 accepted\n";
+    return 1;
+  } catch (const std::invalid_argument&) {
+    // expected
+  }
+  std::cout << "PASS: SR receiver invalid window rejection\n";
+  return 0;
+}
+
 int test_sequence_wraparound()
 {
   flow_control::SelectiveRepeatSender sender{2U, 1U, 255U};
@@ -152,6 +174,7 @@ int main()
   failures += test_selective_retransmission();
   failures += test_duplicate_ack_rejected();
   failures += test_max_window_rejected();
+  failures += test_receiver_max_window_rejected();
   failures += test_sequence_wraparound();
   failures += test_out_of_order_buffering_and_contiguous_delivery();
   failures += test_receiver_duplicate_ack();

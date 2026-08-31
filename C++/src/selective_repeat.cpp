@@ -83,6 +83,9 @@ SelectiveRepeatReceiver::SelectiveRepeatReceiver(std::size_t window_size)
   : window_size_{window_size},
     next_deliver_index_{0U}
 {
+  if (window_size_ == 0U || window_size_ > SELECTIVE_REPEAT_MAX_WINDOW) {
+    throw std::invalid_argument("Selective Repeat window must be 1..128");
+  }
 }
 
 ReceiveResult SelectiveRepeatReceiver::receive(

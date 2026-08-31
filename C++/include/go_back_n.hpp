@@ -38,7 +38,12 @@ public:
     std::uint8_t start_sequence = 0U
   );
 
-  /** Returns pending retransmissions (on timeout) plus any new sends. */
+  /**
+   * @brief Returns pending retransmissions (on timeout) plus any new sends.
+   * The whole outstanding window is reported at most once per `timeout()`
+   * call, so repeated calls without an intervening `timeout()` or freed
+   * window slot return an empty vector.
+   */
   std::vector<Transmission> transmissions();
 
   /**
