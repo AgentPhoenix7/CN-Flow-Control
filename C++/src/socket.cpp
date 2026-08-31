@@ -158,11 +158,23 @@ void Socket::send_record(const Record& record) const
 
 std::optional<Record> Socket::receive_record() const
 {
+  ReceivedRecord received = receive_framed_record();
+  if (received.status == ReceiveStatus::CleanEof) {
+    return std::nullopt;
+  }
+  if (received.status == ReceiveStatus::Malformed) {
+    throw std::runtime_error("malformed application record");
+  }
+  return std::move(received.record);
+}
+
+ReceivedRecord Socket::receive_framed_record() const
+{
   require_valid(descriptor_);
   std::vector<std::uint8_t> prefix(2U);
   const ReceiveExactResult prefix_result = receive_exact(descriptor_, prefix);
   if (prefix_result == ReceiveExactResult::CleanEof) {
-    return std::nullopt;
+    return {ReceiveStatus::CleanEof, Record{}};
   }
   if (prefix_result == ReceiveExactResult::Truncated) {
     throw std::runtime_error("EOF in record length prefix");
@@ -178,11 +190,11 @@ std::optional<Record> Socket::receive_record() const
   if (receive_exact(descriptor_, internal) != ReceiveExactResult::Complete) {
     throw std::runtime_error("EOF in record body");
   }
-  const auto record = parse_record(internal);
+  auto record = parse_record(internal);
   if (!record.has_value()) {
-    throw std::runtime_error("malformed application record");
+    return {ReceiveStatus::Malformed, Record{}};
   }
-  return record;
+  return {ReceiveStatus::Received, std::move(*record)};
 }
 
 Socket Socket::accept() const

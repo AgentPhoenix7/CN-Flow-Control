@@ -17,6 +17,21 @@
 namespace flow_control
 {
 
+/** Outcome of reading one externally length-prefixed application record. */
+enum class ReceiveStatus : std::uint8_t
+{
+  Received,
+  CleanEof,
+  Malformed
+};
+
+/** One framed read; `record` is meaningful only for ReceiveStatus::Received. */
+struct ReceivedRecord
+{
+  ReceiveStatus status;
+  Record record;
+};
+
 /** Move-only RAII ownership of one POSIX socket descriptor. */
 class Socket
 {
@@ -48,6 +63,18 @@ public:
    * @return std::nullopt only for clean EOF before any prefix byte.
    */
   std::optional<Record> receive_record() const;
+
+  /**
+   * @brief Receives one externally length-prefixed record and reports an
+   * internally malformed body instead of throwing.
+   *
+   * The external prefix and the complete body are always consumed before
+   * the body is validated, so the byte stream stays aligned after
+   * ReceiveStatus::Malformed. This lets an application reject a simulated
+   * corrupted record without losing carrier synchronization. Truncated
+   * reads and invalid external lengths still throw.
+   */
+  ReceivedRecord receive_framed_record() const;
 
   /** Accepts one connection from a listening socket. */
   Socket accept() const;
