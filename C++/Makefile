@@ -18,12 +18,14 @@ FRAME_TEST := $(BUILD_DIR)/test_frame
 FRAME_TEST_SOURCES := src/checksum.cpp src/crc.cpp src/frame.cpp tests/test_frame.cpp
 RECORD_TEST := $(BUILD_DIR)/test_record
 RECORD_TEST_SOURCES := src/record.cpp tests/test_record.cpp
+CHANNEL_TEST := $(BUILD_DIR)/test_channel
+CHANNEL_TEST_SOURCES := src/error_injection.cpp src/channel.cpp tests/test_channel.cpp
 
-.PHONY: all test check_config_header test_checksum test_crc test_error_injection test_frame test_record clean
+.PHONY: all test check_config_header test_checksum test_crc test_error_injection test_frame test_record test_channel clean
 
 all: $(OBJECTS)
 
-test: check_config_header test_checksum test_crc test_error_injection test_frame test_record
+test: check_config_header test_checksum test_crc test_error_injection test_frame test_record test_channel
 
 check_config_header: $(CONFIG_TEST)
 	./$(CONFIG_TEST)
@@ -43,6 +45,9 @@ test_frame: $(FRAME_TEST)
 test_record: $(RECORD_TEST)
 	./$(RECORD_TEST)
 
+test_channel: $(CHANNEL_TEST)
+	./$(CHANNEL_TEST)
+
 $(CHECKSUM_TEST): $(CHECKSUM_TEST_SOURCES) include/checksum.hpp | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CHECKSUM_TEST_SOURCES) -o $@
 
@@ -61,6 +66,9 @@ $(FRAME_TEST): $(FRAME_TEST_SOURCES) include/frame.hpp include/config.hpp includ
 $(RECORD_TEST): $(RECORD_TEST_SOURCES) include/record.hpp include/frame.hpp include/config.hpp | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(RECORD_TEST_SOURCES) -o $@
 
+$(CHANNEL_TEST): $(CHANNEL_TEST_SOURCES) include/channel.hpp include/error_injection.hpp | $(BUILD_DIR)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CHANNEL_TEST_SOURCES) -o $@
+
 $(BUILD_DIR)/%.o: src/%.cpp | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
@@ -68,4 +76,4 @@ $(BUILD_DIR):
 	mkdir -p $@
 
 clean:
-	rm -f $(OBJECTS) $(CHECKSUM_TEST) $(CONFIG_TEST) $(CRC_TEST) $(ERROR_INJECTION_TEST) $(FRAME_TEST) $(RECORD_TEST)
+	rm -f $(OBJECTS) $(CHECKSUM_TEST) $(CONFIG_TEST) $(CRC_TEST) $(ERROR_INJECTION_TEST) $(FRAME_TEST) $(RECORD_TEST) $(CHANNEL_TEST)
