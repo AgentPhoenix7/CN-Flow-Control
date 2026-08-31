@@ -43,13 +43,25 @@ RECEIVER := $(BUILD_DIR)/receiver
 RECEIVER_SOURCES := $(APPLICATION_SOURCES) src/receiver_main.cpp
 END_TO_END_TEST := tests/test_end_to_end.py
 
-.PHONY: all test check_config_header test_checksum test_crc test_error_injection test_frame test_record test_channel test_timer test_metrics test_socket test_stop_and_wait test_go_back_n test_selective_repeat test_end_to_end applications clean
+# Python experiment, validation, plotting, and report tooling. These run in the
+# root uv environment; there is deliberately no second pyproject.toml here.
+GENERATE_TEST_DATA := tools/generate_test_data.py
+RUN_EXPERIMENTS := tools/run_experiments.py
+VALIDATE_RESULTS := tools/validate_results.py
+PLOT_RESULTS := tools/plot_results.py
+GENERATE_REPORT := tools/generate_report.py
+TOOL_TESTS := tests/test_generate_test_data.py tests/test_run_experiments.py \
+	tests/test_validate_results.py tests/test_plot_results.py \
+	tests/test_generate_report.py
+EXPERIMENTS_CSV := results/experiments.csv
+
+.PHONY: all test fixture check_config_header test_checksum test_crc test_error_injection test_frame test_record test_channel test_timer test_metrics test_socket test_stop_and_wait test_go_back_n test_selective_repeat test_end_to_end test_tools applications experiments results clean
 
 all: $(OBJECTS) applications
 
 applications: $(SENDER) $(RECEIVER)
 
-test: check_config_header test_checksum test_crc test_error_injection test_frame test_record test_channel test_timer test_metrics test_socket test_stop_and_wait test_go_back_n test_selective_repeat test_end_to_end
+test: check_config_header test_checksum test_crc test_error_injection test_frame test_record test_channel test_timer test_metrics test_socket test_stop_and_wait test_go_back_n test_selective_repeat test_end_to_end test_tools
 
 check_config_header: $(CONFIG_TEST)
 	./$(CONFIG_TEST)
@@ -92,6 +104,33 @@ test_selective_repeat: $(SELECTIVE_REPEAT_TEST)
 
 test_end_to_end: $(SENDER) $(RECEIVER)
 	uv run python $(END_TO_END_TEST)
+
+# The tooling tests need the committed results file that test_validate_results
+# checks, so they run after the experiments have been generated at least once.
+test_tools: $(EXPERIMENTS_CSV)
+	@for test in $(TOOL_TESTS); do \
+		echo "== $$test"; \
+		uv run python $$test || exit 1; \
+	done
+
+# Regenerates the deterministic transfer fixture. Not a prerequisite of
+# anything, because test_data/input.bin is committed evidence; run it only when
+# the fixture's seed or size is meant to change.
+fixture:
+	uv run python $(GENERATE_TEST_DATA) --output test_data/input.bin \
+		--seed 20260831 --size 4096
+
+experiments: $(EXPERIMENTS_CSV)
+
+$(EXPERIMENTS_CSV): $(SENDER) $(RECEIVER) $(RUN_EXPERIMENTS) test_data/input.bin
+	uv run python $(RUN_EXPERIMENTS)
+
+# Validation runs first and gates the rest: neither the plots nor the report
+# may be built from results that fail an identity check.
+results: experiments
+	uv run python $(VALIDATE_RESULTS)
+	uv run python $(PLOT_RESULTS)
+	uv run python $(GENERATE_REPORT)
 
 $(CHECKSUM_TEST): $(CHECKSUM_TEST_SOURCES) include/checksum.hpp | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CHECKSUM_TEST_SOURCES) -o $@
