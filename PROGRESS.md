@@ -32,6 +32,10 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - Use one bidirectional TCP connection as a carrier for explicit DATA, ACK, and completion records.
 - Use `std::chrono::steady_clock` for RTT and timeout measurement.
 - Sequence numbers wrap modulo 256; Selective Repeat must use `N <= 128`, and Go-Back-N may have at most 255 outstanding frames.
+- The applications run deterministic timeout rounds with no threads and no wall-clock sleeps. A round that produces no window progress is a timeout; it advances a logical completion clock by the current estimator value and retransmits on the next round. Every other round advances that clock by its measured duration with a one-millisecond floor, which keeps RTT samples positive on a loopback carrier.
+- The CONFIG record carries one error and one excessive-delay probability per path, so excessive delay models loss: a delayed frame or ACK arrives after the current timeout and is therefore suppressed for its round. The channel's separate drop probability stays zero.
+- The sender prints the single metrics row, so its `duplicates` counts acknowledgments that passed their integrity check but moved no window, and its `out_of_order` counts accepted acknowledgments for a frame other than the current window base.
+- Stop-and-Wait forces the window to one regardless of `--window`; Go-Back-N rejects anything above 255 and Selective Repeat anything above 128.
 
 ## Completed Work
 
@@ -65,6 +69,11 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - Wrote `test_go_back_n` first (window fill, cumulative ACK slide, whole-window timeout, duplicate-ACK rejection, invalid-window rejection, sequence wraparound, receiver out-of-order discard, receiver cumulative delivery/duplicate) and implemented Go-Back-N to green.
 - Wrote `test_selective_repeat` first (independent ACK slide, selective retransmission, duplicate-ACK rejection, invalid-window rejection, sequence wraparound, receiver out-of-order buffering and contiguous delivery, receiver duplicate ACK) and implemented Selective Repeat to green.
 - Wired `test_go_back_n` and `test_selective_repeat` into `C++/Makefile` alongside the existing `test_stop_and_wait` target.
+- Added `Socket::receive_framed_record`, which consumes the external prefix and complete body before validation and reports a malformed body instead of throwing, so a simulated corrupted ACK is rejected without desynchronizing the carrier.
+- Added shared session helpers for permyriad probability conversion, independently seeded DATA and ACK channel configurations, frame counting, and disabling Nagle's algorithm on the carrier.
+- Implemented the sender application: CLI validation, CONFIG handshake, deterministic timeout rounds, DATA-channel impairment, Karn-filtered RTT sampling, and one machine-readable CSV metrics row.
+- Implemented the receiver application: CONFIG decoding, FCS verification before delivery, silent discard of rejected frames, contiguous-only file writing with Selective Repeat buffering, ACK-channel impairment, and COMPLETE_ACK closure.
+- Added the deterministic 4096-byte `C++/test_data/input.bin` fixture and the `test_end_to_end.py` subprocess suite, and wired `test_end_to_end`, `applications`, and the `sender`/`receiver` link rules into `C++/Makefile`.
 
 ## Current Repository State
 
@@ -87,13 +96,17 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - `C++/include/stop_and_wait.hpp`/`C++/src/stop_and_wait.cpp` implement `StopAndWaitSender`/`StopAndWaitReceiver` with one outstanding frame, ACK matching, timeout retransmission, duplicate-safe delivery, and modulo-256 wraparound.
 - `C++/include/go_back_n.hpp`/`C++/src/go_back_n.cpp` implement `GoBackNSender`/`GoBackNReceiver` with sender window `N` (1--255, enforced by `std::invalid_argument`), receiver window 1, cumulative ACKs, whole-window timeout retransmission, and out-of-order discard with re-ACK of the last accepted sequence.
 - `C++/include/selective_repeat.hpp`/`C++/src/selective_repeat.cpp` implement `SelectiveRepeatSender`/`SelectiveRepeatReceiver` with both windows `N` (1--128, enforced by `std::invalid_argument`), independent ACKs, selective (per-frame) retransmission, and receiver buffering with contiguous-only delivery.
-- Applications, tools, and the report remain empty placeholders.
+- `C++/include/session.hpp`/`C++/src/session.cpp` convert probabilities to and from the CONFIG record's permyriad encoding, derive independently seeded DATA and ACK channel configurations, count frames, and disable Nagle's algorithm on the carrier.
+- `C++/src/sender_main.cpp` links `build/sender`: it validates the CLI, sends CONFIG, runs deterministic timeout rounds, applies the DATA channel, measures Karn-filtered RTT on a logical clock, and prints one CSV metrics row.
+- `C++/src/receiver_main.cpp` links `build/receiver`: it accepts one connection, decodes CONFIG, verifies every frame before delivery, writes only contiguous in-order payload, applies the ACK channel, and answers COMPLETE with COMPLETE_ACK.
+- `C++/test_data/input.bin` is a tracked 4096-byte deterministic fixture; `C++/tests/test_end_to_end.py` drives both binaries as subprocesses.
+- Tools and the report remain empty placeholders.
 - The root `pyproject.toml` and `uv.lock` describe an unpackaged virtual project, no root `src/` package tree remains, and `.venv` is synchronized.
-- No sender/receiver executables are linked yet; all unit-level protocol and support-module tests pass.
+- `build/sender` and `build/receiver` link and complete byte-identical transfers; all unit-level and end-to-end tests pass.
 
 ## Current Exact Step
 
-All three ARQ state machines (Stop-and-Wait, Go-Back-N, Selective Repeat) are implemented and GREEN. The immediate next step is the sender/receiver command-line applications that compose these state machines with `frame`, `record`, `channel`, and `socket`.
+The sender and receiver applications are implemented and GREEN end to end for every protocol and FCS scheme, clean and impaired. The immediate next step is the reproducible experiment matrix under `C++/tools/`, which runs the protocol, FCS, and probability combinations, validates identities and denominators, and stores results under `C++/results/`.
 
 ## Recommended Implementation Order
 
@@ -150,7 +163,14 @@ All three ARQ state machines (Stop-and-Wait, Go-Back-N, Selective Repeat) are im
 - `make -C C++ test_stop_and_wait` compiled and passed all five cases against the pre-existing test file once `protocol.hpp`/`stop_and_wait.hpp`/`stop_and_wait.cpp` were implemented (previously empty, so linking failed with undefined references — the expected RED).
 - `test_go_back_n` and `test_selective_repeat` were written first and confirmed RED (undefined-reference link failures against empty `.cpp` files), then each protocol's implementation made its own eight/seven cases pass.
 - `make -C C++ test` exits 0 with all 65 printed test groups across every module (checksum, config, CRC, error injection, frame, record, channel, timer, metrics, socket, Stop-and-Wait, Go-Back-N, Selective Repeat) passing with pristine output.
-- `make -C C++ all` compiles every translation unit, including the three new ARQ sources, with `-Wall -Wextra -Wpedantic -Werror` and no warnings.
+- `C++/test_data/input.bin` was generated by `python3 -c "import random; open('C++/test_data/input.bin','wb').write(random.Random(20260831).randbytes(4096))"` and has SHA-256 `01a92fd854772cfce24733637bb3c01f3a63a9c25b283c378c9e7e8802ce3ca7`. 4096 is not a multiple of 46 or 100 and is an exact multiple of 64, so both final-frame shapes are covered.
+- The first clean Stop-and-Wait transfer took 8.3 s because Nagle's algorithm held each round's second small write until the first was acknowledged; disabling it on both endpoints reduced the same transfer to well under a second and made the mean RTT 1 ms instead of 87 ms.
+- `make -C C++ test_end_to_end` exits 0 with local socket permission and prints 48 `PASS` lines: 15 clean protocol/FCS transfers, four payload-division cases including the 1499-byte CRC-32 boundary, nine deterministic DATA-loss/DATA-corruption/ACK-loss cases, one ACK-corruption case, three duplicate-safe heavy-impairment cases, one seeded-replay case, and 15 CLI rejection cases.
+- Mutation checks confirmed the end-to-end suite is not vacuous: forcing the receiver to verify every frame with Checksum-16 regardless of the negotiated scheme made all 19 non-Checksum-16 cases fail with `sender: transfer did not converge within its round budget`, and writing each delivered payload twice made 33 cases fail with `output file is not byte-identical to the input`. Restoring the receiver made all 48 cases pass again.
+- Manual worst-case runs with `--data-error 0.5 --data-delay 0.5 --ack-error 0.5 --ack-delay 0.5` reproduced the input byte-for-byte for Stop-and-Wait, Go-Back-N with window 32, and Selective Repeat with window 128, using 1455, 279, and 80 timeouts respectively against a 19 000-round budget.
+- A Stop-and-Wait run with `--window 8` still reported 90 original transmissions and no retransmissions, confirming the forced window of one; an empty input file completed with a zero-byte output.
+- `make -C C++ test` exits 0 with 113 printed `PASS` lines: 65 unit-test groups plus the 48 end-to-end cases.
+- `make -C C++ all` compiles every translation unit and links `build/sender` and `build/receiver` with `-Wall -Wextra -Wpedantic -Werror` and no warnings.
 
 ## How to Update This File
 
