@@ -55,18 +55,19 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - `C++/README.md` documents the confirmed wire format and protocol behavior.
 - `C++/Makefile` compiles every current source file into ignored object files under `C++/build/`.
 - The root and `C++/` `.gitignore` files contain verified project-specific rules.
-- The C++ headers, sources, tests, tools, and report template remain empty placeholders.
+- `C++/include/checksum.hpp` now declares the vector-based Checksum-16 compute API, and `C++/tests/test_checksum.cpp` contains its first known-vector test; `C++/src/checksum.cpp` remains empty.
+- The remaining C++ headers, sources, tests, tools, and report template remain empty placeholders.
 - The root `pyproject.toml` and `uv.lock` describe an unpackaged virtual project, no root `src/` package tree remains, and `.venv` is synchronized.
 - Git is clean and synchronized with `origin/main` at commit `7d386eb` before this handoff update.
 - No executables are linked and no project tests exist yet; successful object compilation does not prove protocol behavior.
 
 ## Current Exact Step
 
-The README and strict object-build scaffold are complete. The immediate next step is to inspect the reused Assignment 1 checksum behavior, then begin Checksum-16 test-first:
+The Checksum-16 public API and first known-vector test have reached the expected RED state. The immediate next step is:
 
-1. define the smallest desired checksum API through `test_checksum.cpp`;
-2. add a focused `test_checksum` Make target; and
-3. run it to confirm the expected failing test before implementing checksum code.
+1. add a focused `test_checksum` Make target;
+2. reproduce the expected undefined-reference failure through that target; and
+3. implement only enough Checksum-16 behavior to pass the even-length test.
 
 ## Recommended Implementation Order
 
@@ -92,6 +93,7 @@ The README and strict object-build scaffold are complete. The immediate next ste
 - `git check-ignore -v .venv/pyvenv.cfg C++/build/example.o C++/output_files/received.bin` confirms that the root virtual environment, C++ build artifacts, and reconstructed output files are ignored.
 - `git check-ignore -v C++/build/.gitkeep C++/output_files/.gitkeep` confirms that the placeholder files are explicitly preserved.
 - `make -C 'C++' all` successfully compiled all 14 source translation units using `g++`, C++17, and strict warning flags with no warnings or errors.
+- Directly compiling `C++/tests/test_checksum.cpp` with `C++/src/checksum.cpp` reached the expected RED linker failure: undefined reference to `flow_control::checksum16_compute(const std::vector<std::uint8_t>&)`.
 - No project tests can run yet; do not report a passing build or test count.
 
 ## How to Update This File
