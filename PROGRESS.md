@@ -51,13 +51,15 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - Added mutation-checked coverage that rejects a corrupted payload paired with the original checksum.
 - Added mutation-checked coverage that rejects a corrupted received checksum.
 - Completed Checksum-16 verification coverage with the valid empty-input checksum boundary.
+- Added compile-time frame/FCS configuration constants and a strict header contract target.
 
 ## Current Repository State
 
 - `AGENTS.md` contains the contributor and architecture guide.
 - `PROGRESS.md` is now the conversation-handoff file.
 - `C++/README.md` documents the confirmed wire format and protocol behavior.
-- `C++/Makefile` compiles every current source file into ignored object files and provides a focused `test_checksum` target.
+- `C++/Makefile` compiles every current source file into ignored object files and provides focused checksum and configuration targets.
+- `C++/include/config.hpp` owns the 15-byte header, 64–1518-byte frame, FCS-size, 1499-byte maximum-payload, and 46-byte default-payload constants; `check_config_header` enforces them at compile time.
 - The root and `C++/` `.gitignore` files contain verified project-specific rules.
 - `C++/include/checksum.hpp` declares Checksum-16 computation and verification; `C++/src/checksum.cpp` implements both operations, and `C++/tests/test_checksum.cpp` covers three computation cases plus valid, corrupted-payload, corrupted-checksum, and empty-input verification.
 - The remaining C++ headers, sources, tests, tools, and report template remain empty placeholders.
@@ -66,7 +68,7 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 
 ## Current Exact Step
 
-Checksum-16 is complete and GREEN. The immediate next step is to add compile-time frame configuration constants and their syntax/static-assert test target.
+Configuration and Checksum-16 are GREEN. The immediate next step is to add known-vector CRC tests for widths 8, 10, 16, and 32, observe the missing-API RED failure, then implement the generic MSB-first CRC.
 
 ## Recommended Implementation Order
 
@@ -106,6 +108,8 @@ Checksum-16 is complete and GREEN. The immediate next step is to add compile-tim
 - The same accept-all mutation made the corrupted-checksum test print `FAIL: corrupted checksum was accepted`; restoring the verifier made it pass.
 - With the verifier temporarily mutated to reject every pair, the empty-input verification test printed `FAIL: valid empty-input checksum was rejected`; restoring the verifier made it pass.
 - Seven focused Checksum-16 cases pass; do not report a full-suite test count.
+- `timeout 30s env -u MAKEFLAGS -u MFLAGS /usr/bin/make -C C++ check_config_header` compiles and runs the configuration contract successfully.
+- The first configuration compile caught the invalid assumption that a 46-byte payload itself reaches the 64-byte minimum; the corrected invariant leaves zero padding to frame serialization and constrains the valid payload range.
 
 ## How to Update This File
 
