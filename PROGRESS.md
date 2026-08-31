@@ -50,6 +50,7 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - Implemented Checksum-16 verification for valid data/checksum pairs using one's-complement folded addition.
 - Added mutation-checked coverage that rejects a corrupted payload paired with the original checksum.
 - Added mutation-checked coverage that rejects a corrupted received checksum.
+- Completed Checksum-16 verification coverage with the valid empty-input checksum boundary.
 
 ## Current Repository State
 
@@ -58,14 +59,14 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - `C++/README.md` documents the confirmed wire format and protocol behavior.
 - `C++/Makefile` compiles every current source file into ignored object files and provides a focused `test_checksum` target.
 - The root and `C++/` `.gitignore` files contain verified project-specific rules.
-- `C++/include/checksum.hpp` declares Checksum-16 computation and verification; `C++/src/checksum.cpp` implements both operations, and `C++/tests/test_checksum.cpp` covers computation, valid verification, corrupted-payload rejection, and corrupted-checksum rejection.
+- `C++/include/checksum.hpp` declares Checksum-16 computation and verification; `C++/src/checksum.cpp` implements both operations, and `C++/tests/test_checksum.cpp` covers three computation cases plus valid, corrupted-payload, corrupted-checksum, and empty-input verification.
 - The remaining C++ headers, sources, tests, tools, and report template remain empty placeholders.
 - The root `pyproject.toml` and `uv.lock` describe an unpackaged virtual project, no root `src/` package tree remains, and `.venv` is synchronized.
-- No sender/receiver executables are linked; six focused Checksum-16 cases pass, but empty-input verification and a full project test suite do not exist yet.
+- No sender/receiver executables are linked; all seven focused Checksum-16 cases pass, but CRC and the remaining project test suite do not exist yet.
 
 ## Current Exact Step
 
-Checksum-16 corrupted-checksum rejection is GREEN. The immediate next step is to add and mutation-check empty-input verification, then commit the completed Checksum-16 test slice.
+Checksum-16 is complete and GREEN. The immediate next step is to add compile-time frame configuration constants and their syntax/static-assert test target.
 
 ## Recommended Implementation Order
 
@@ -103,7 +104,8 @@ Checksum-16 corrupted-checksum rejection is GREEN. The immediate next step is to
 - `timeout 5s git diff --check` exited 0.
 - With the verifier temporarily mutated to accept every pair, the corrupted-payload test printed `FAIL: corrupted payload was accepted` and the focused target exited nonzero; restoring the implementation made the same target pass.
 - The same accept-all mutation made the corrupted-checksum test print `FAIL: corrupted checksum was accepted`; restoring the verifier made it pass.
-- Six focused Checksum-16 cases pass; do not report a full-suite test count.
+- With the verifier temporarily mutated to reject every pair, the empty-input verification test printed `FAIL: valid empty-input checksum was rejected`; restoring the verifier made it pass.
+- Seven focused Checksum-16 cases pass; do not report a full-suite test count.
 
 ## How to Update This File
 

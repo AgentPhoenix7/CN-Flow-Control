@@ -139,6 +139,23 @@ int test_corrupted_checksum_rejection()
   return 0;
 }
 
+int test_empty_input_verification()
+{
+  const std::vector<std::uint8_t> data{};
+  constexpr std::uint16_t received_checksum = 0xFFFFU;
+
+  if (!flow_control::checksum16_verify(
+        data,
+        received_checksum
+      )) {
+    std::cerr << "FAIL: valid empty-input checksum was rejected\n";
+    return 1;
+  }
+
+  std::cout << "PASS: empty-input verification\n";
+  return 0;
+}
+
 }  // namespace
 
 int main()
@@ -151,6 +168,7 @@ int main()
   failures += test_valid_checksum_verification();
   failures += test_corrupted_payload_rejection();
   failures += test_corrupted_checksum_rejection();
+  failures += test_empty_input_verification();
 
   return failures == 0 ? 0 : 1;
 }
