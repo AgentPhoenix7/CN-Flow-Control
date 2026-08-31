@@ -58,6 +58,7 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - Added typed CONFIG, DATA, ACK, round-boundary, and completion records with type-specific validation and detectable ACK corruption.
 - Added a deterministic application-layer channel with independent drop, excessive-delay, and corruption decisions plus separate selection/bit RNG state.
 - Added an adaptive SRTT/RTTVAR timeout estimator with 10--2000 ms clamps and Karn's rule for retransmitted frames.
+- Added transfer counters, explicit efficiency/goodput/mean-RTT denominators, zero-denominator handling, and stable CSV serialization.
 
 ## Current Repository State
 
@@ -72,15 +73,16 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 - `C++/include/record.hpp` and `C++/src/record.cpp` encode internal record bytes independently of the external TCP prefix, validate DATA sizes and marker bodies, protect ACKs with a complement byte, and serialize fixed-width session configuration.
 - `C++/include/channel.hpp` and `C++/src/channel.cpp` return explicit clean/dropped/delayed/corrupted outcomes and never expose bytes for suppressed transmissions.
 - `C++/include/timer.hpp` and `C++/src/timer.cpp` start at 100 ms, update timeout as `SRTT + 4*RTTVAR`, and ignore ambiguous retransmitted samples.
+- `C++/include/metrics.hpp` and `C++/src/metrics.cpp` define the required counters and machine-readable derived values.
 - The root and `C++/` `.gitignore` files contain verified project-specific rules.
 - `C++/include/checksum.hpp` declares Checksum-16 computation and verification; `C++/src/checksum.cpp` implements both operations, and `C++/tests/test_checksum.cpp` covers three computation cases plus valid, corrupted-payload, corrupted-checksum, and empty-input verification.
-- Metrics/socket, ARQ, applications, tools, and the report remain empty placeholders.
+- Socket, ARQ, applications, tools, and the report remain empty placeholders.
 - The root `pyproject.toml` and `uv.lock` describe an unpackaged virtual project, no root `src/` package tree remains, and `.venv` is synchronized.
 - No sender/receiver executables are linked; all seven focused Checksum-16 cases pass, but CRC and the remaining project test suite do not exist yet.
 
 ## Current Exact Step
 
-Channel and adaptive timeout simulation are GREEN. The immediate next step is to define metrics counters, efficiency/goodput denominators, and stable machine-readable serialization through focused tests.
+Channel, timer, and metrics support are GREEN. The immediate next step is to test move-only socket ownership, exact externally length-prefixed record exchange, clean EOF, and truncated records before implementing the RAII socket wrapper.
 
 ## Recommended Implementation Order
 
@@ -131,7 +133,8 @@ Channel and adaptive timeout simulation are GREEN. The immediate next step is to
 - `test_record` first failed to compile because its API was absent, then passed four groups: typed round trips, ACK complement integrity, CONFIG round trip, and malformed rejection.
 - `test_channel` first failed to compile because its API was absent, then passed forced outcomes, reproducible corruption, empty corruption handling, and invalid probability rejection.
 - `test_timer` first failed to compile because its API was absent, then passed initial/first sample, EWMA update, clamp, Karn-rule, and invalid-sample behavior in four groups.
-- The current full `make -C C++ test` exits 0 for configuration plus 37 printed unit-test groups, and `make -C C++ all` compiles all implemented translation units with strict warnings.
+- `test_metrics` first failed to compile because its API was absent, then passed zero denominators, derived calculations, and stable CSV output.
+- The current full `make -C C++ test` exits 0 for configuration plus 40 printed unit-test groups, and `make -C C++ all` compiles all implemented translation units with strict warnings.
 
 ## How to Update This File
 
