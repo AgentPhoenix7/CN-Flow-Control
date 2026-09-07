@@ -161,6 +161,26 @@ int test_receiver_cumulative_delivery_and_duplicate()
   return 0;
 }
 
+int test_receiver_older_duplicate_detected()
+{
+  flow_control::GoBackNReceiver receiver;
+  (void)receiver.receive(0U, 0U);
+  (void)receiver.receive(1U, 1U);
+  (void)receiver.receive(2U, 2U);
+  // The whole window was retransmitted after a lost ACK for frame 0; frames
+  // 1 and 2 were already delivered, so frame 0 is a duplicate two frames
+  // older than the immediately preceding delivery, not just the last one.
+  const auto older_duplicate = receiver.receive(0U, 0U);
+  if (older_duplicate.out_of_order || !older_duplicate.duplicate
+      || !older_duplicate.ack.has_value() || *older_duplicate.ack != 2U
+      || !older_duplicate.delivered_indices.empty()) {
+    std::cerr << "FAIL: GBN receiver older duplicate\n";
+    return 1;
+  }
+  std::cout << "PASS: GBN receiver older duplicate detected\n";
+  return 0;
+}
+
 }  // namespace
 
 int main()
@@ -174,5 +194,6 @@ int main()
   failures += test_sequence_wraparound();
   failures += test_receiver_out_of_order_discard();
   failures += test_receiver_cumulative_delivery_and_duplicate();
+  failures += test_receiver_older_duplicate_detected();
   return failures == 0 ? 0 : 1;
 }

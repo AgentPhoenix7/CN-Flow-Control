@@ -74,7 +74,8 @@ bool GoBackNSender::complete() const noexcept
 GoBackNReceiver::GoBackNReceiver(std::uint8_t start_sequence)
   : expected_sequence_{start_sequence},
     last_acked_sequence_{start_sequence},
-    has_received_{false}
+    has_received_{false},
+    delivered_count_{0U}
 {
 }
 
@@ -91,10 +92,14 @@ ReceiveResult GoBackNReceiver::receive(
     last_acked_sequence_ = sequence;
     has_received_ = true;
     expected_sequence_ = static_cast<std::uint8_t>(expected_sequence_ + 1U);
+    ++delivered_count_;
     return result;
   }
 
-  if (has_received_ && sequence == last_acked_sequence_) {
+  // frame_index is a monotonic per-transfer counter, unlike sequence (which
+  // wraps modulo 256), so it unambiguously identifies a retransmission of
+  // any already-delivered frame -- not only the immediately preceding one.
+  if (has_received_ && frame_index < delivered_count_) {
     result.ack = last_acked_sequence_;
     result.duplicate = true;
     return result;

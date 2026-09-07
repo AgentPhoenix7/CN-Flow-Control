@@ -99,7 +99,13 @@ ReceiveResult StopAndWaitReceiver::receive(
     return result;
   }
 
+  // Re-ACK the last accepted sequence, symmetric with Go-Back-N's receiver:
+  // a genuinely unexpected sequence can only follow a lost ACK, so the
+  // sender's retransmission has the same recovery chance either protocol.
   result.out_of_order = true;
+  if (has_received_) {
+    result.ack = last_acked_sequence_;
+  }
   return result;
 }
 

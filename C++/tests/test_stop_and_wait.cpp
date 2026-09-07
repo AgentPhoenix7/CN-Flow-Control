@@ -72,6 +72,24 @@ int test_out_of_order_rejection()
   return 0;
 }
 
+int test_out_of_order_reacks_last_delivered()
+{
+  // Once a frame has been delivered, an out-of-order arrival should re-ACK
+  // the last accepted sequence -- the same behavior Go-Back-N's receiver
+  // already has, so a lost ACK can still be recovered by either protocol.
+  flow_control::StopAndWaitReceiver receiver;
+  (void)receiver.receive(0U, 0U);
+  const auto result = receiver.receive(5U, 5U);
+  if (result.duplicate || !result.out_of_order
+      || !result.ack.has_value() || *result.ack != 0U
+      || !result.delivered_indices.empty()) {
+    std::cerr << "FAIL: Stop-and-Wait out-of-order re-ACK\n";
+    return 1;
+  }
+  std::cout << "PASS: Stop-and-Wait out-of-order re-ACKs last delivered\n";
+  return 0;
+}
+
 int test_sequence_wraparound()
 {
   flow_control::StopAndWaitSender sender{2U, 255U};
@@ -99,6 +117,7 @@ int main()
   failures += test_timeout_retransmission();
   failures += test_receiver_duplicate_delivery();
   failures += test_out_of_order_rejection();
+  failures += test_out_of_order_reacks_last_delivered();
   failures += test_sequence_wraparound();
   return failures == 0 ? 0 : 1;
 }

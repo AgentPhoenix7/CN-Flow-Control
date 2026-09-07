@@ -80,10 +80,12 @@ public:
 
   /**
    * @brief Processes one verified, arriving frame.
-   * @param frame_index Index of the frame within the full message. Ignored on
-   *   every path here; Go-Back-N delivers only the next expected frame and
-   *   discards out-of-order ones, so this argument is only meaningful for
-   *   Selective Repeat's out-of-order buffering.
+   * @param frame_index Index of the frame within the full message. Go-Back-N
+   *   delivers only the next expected frame and never buffers an
+   *   out-of-order one for later delivery (that behavior is Selective
+   *   Repeat's), but this index is still used to classify a retransmission
+   *   of any already-delivered frame as a duplicate, not only the
+   *   immediately preceding one.
    * @param sequence Sequence number carried on the wire.
    */
   ReceiveResult receive(std::size_t frame_index, std::uint8_t sequence);
@@ -92,6 +94,7 @@ private:
   std::uint8_t expected_sequence_;
   std::uint8_t last_acked_sequence_;
   bool has_received_;
+  std::size_t delivered_count_;
 };
 
 }  // namespace flow_control
