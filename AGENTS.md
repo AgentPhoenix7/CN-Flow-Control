@@ -4,7 +4,7 @@
 
 This repository implements Data Link Layer flow control in a simulated network using C++17. Reuse the behavior and wire contract of Assignment 1's C17 framing, checksum/CRC, error-injection, and TCP socket modules, then add Stop-and-Wait, Go-Back-N ARQ, and Selective Repeat ARQ. Keep Assignment 1 unchanged; port or adapt reusable modules into this repository rather than editing the previous assignment.
 
-The demonstration is due 24–28 August 2026. The report is due 31 August–4 September 2026, with a soft copy uploaded to the course drive.
+The demonstration is due 31 August–4 September 2026. The report is due 7–11 September 2026, with a soft copy uploaded to the course drive.
 
 ## Project Structure & Module Organization
 
@@ -12,7 +12,7 @@ The repository root contains the assignment PDF, professor recording, `README.md
 
 - `C++/include/`: public `.hpp` interfaces, types, and protocol constants.
 - `C++/src/`: `.cpp` framing, channel, timer, ARQ, sender, receiver, and socket implementations.
-- `C++/tests/`: `test_<module>.cpp` unit tests and end-to-end tests.
+- `C++/tests/`: `test_<module>.cpp` unit tests, the `test_end_to_end.py` sender/receiver transfer suite, and `test_<tool>.py` scripts covering the Python experiment/validation/plotting/report tooling.
 - `C++/test_data/`: small deterministic fixtures.
 - `C++/input_files/` and `C++/output_files/`: experiment inputs and received files.
 - `C++/tools/`: reproducible experiment, validation, plotting, and report scripts.
@@ -64,21 +64,23 @@ Sequence numbers are one byte and wrap modulo 256. Limit Go-Back-N to at most 25
 
 ## Build, Test, and Development Commands
 
-When the C++ scaffold is added, preserve a simple root-invoked interface:
+The C++ scaffold is complete and preserves a simple root-invoked interface:
 
 ```bash
-make -C C++ all                 # strict C++17 build
-make -C C++ test                # all unit and validation tests
+make -C C++ all                 # strict C++17 build (compiles sender/receiver too)
+make -C C++ test                # every unit, end-to-end, and tooling test target below
 make -C C++ test_stop_and_wait  # protocol-specific tests
 make -C C++ test_go_back_n
 make -C C++ test_selective_repeat
 make -C C++ test_end_to_end     # sender/receiver transfer checks
+make -C C++ test_tools          # Python experiment/validation/plotting/report tests
 make -C C++ experiments         # reproducible experiment matrix
 make -C C++ results             # validate data and build plots/report
+make -C C++ fixture             # regenerate the deterministic test_data/input.bin fixture
 make -C C++ clean               # remove generated build output
 ```
 
-Compile with `g++` and `-std=c++17 -Wall -Wextra -Wpedantic -Werror`. Do not claim a command or target works until it exists and has been run successfully.
+`make -C C++ test` also runs focused targets not listed above for every remaining module (`check_config_header`, `test_checksum`, `test_crc`, `test_error_injection`, `test_frame`, `test_record`, `test_channel`, `test_timer`, `test_metrics`, `test_socket`); each can be run individually the same way. Compile with `g++` and `-std=c++17 -Wall -Wextra -Wpedantic -Werror`. Do not claim a command or target works until it exists and has been run successfully.
 
 ## Coding Style & Naming Conventions
 
@@ -88,7 +90,7 @@ Prefer RAII and value types: `std::array` for fixed wire fields, `std::vector` f
 
 ## Testing and Evaluation Guidelines
 
-Use small C++ test executables with assertions or explicit pass/fail status; do not add a test framework unless it provides clear value. Cover normal, boundary, malformed, wraparound, duplicate, lost-data, lost-ACK, corrupted-data, corrupted-ACK, delayed, timeout, move/ownership, and final-short-frame cases. Pin RNG seeds and simulated events; rejected operations must not partially modify state.
+Use small C++ test executables with assertions or explicit pass/fail status, and small Python test scripts with the same plain reporting style for the experiment/validation/plotting/report tooling; do not add a test framework unless it provides clear value. Cover normal, boundary, malformed, wraparound, duplicate, lost-data, lost-ACK, corrupted-data, corrupted-ACK, delayed, timeout, move/ownership, and final-short-frame cases. Pin RNG seeds and simulated events; rejected operations must not partially modify state.
 
 End-to-end clean runs must reproduce input byte-for-byte for every protocol and FCS scheme. Compare all three protocols with no impairment and with probabilities 0.1–0.5 for errors or delays affecting data or ACKs. Use the same input, payload size, window sizes, seeds, and impairment schedule across comparisons.
 
