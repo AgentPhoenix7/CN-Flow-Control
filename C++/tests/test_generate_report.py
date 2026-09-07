@@ -277,6 +277,141 @@ def main() -> int:
             claims_no_coincidence_that_the_data_does_not_show,
         )
 
+        def render_path_coincidences_reports_true_absence() -> None:
+            # Every prior coincidence test uses a fixture where at least one
+            # pair coincides; this is the only one that exercises the
+            # fallback branch where none of the six pairs do.
+            offsets = {"data-error": 0, "data-delay": 1, "ack-error": 2, "ack-delay": 3}
+            distinct = synthetic_rows(extra=lambda run: offsets.get(run.impairment, 0))
+            distinct_records = [dict(zip(runner.EXPERIMENT_COLUMNS, row)) for row in distinct]
+            pairs = reporter.coincident_paths(distinct_records)
+            if pairs:
+                raise ReportError(f"expected no coincident pairs, found {pairs}")
+
+            source = directory / "no_coincidence.csv"
+            target = directory / "no_coincidence_report.md"
+            write_csv(source, distinct)
+            result = run_reporter(source, target)
+            if result.returncode != 0:
+                raise ReportError(f"a valid non-coincident result set was refused: {result.stderr}")
+            text = target.read_text(encoding="utf-8")
+            if "distinct result set" not in text:
+                raise ReportError("the report does not state that no sweeps coincide")
+            if "pair(s) of impairment sweeps coincide exactly" in text:
+                raise ReportError("the report claims a coincidence when none exists")
+
+        suite.case(
+            "the report states plainly when no impairment sweeps coincide",
+            render_path_coincidences_reports_true_absence,
+        )
+
+        def completion_estimator_caveat_names_a_flagged_shown_run() -> None:
+            shown = [
+                {"run_id": "go-back-n__data-error__0.5"},
+                {"run_id": "go-back-n__data-error__0.4"},
+            ]
+            flagged = reporter.flagged_run_ids(
+                ["go-back-n__data-error__0.5: no unambiguous RTT sample"]
+            )
+            note = reporter.completion_estimator_caveat(shown, flagged)
+            if (
+                note is None
+                or "go-back-n__data-error__0.5" not in note
+                or "100 ms constructor default" not in note
+            ):
+                raise ReportError(f"the caveat does not name the flagged run: {note!r}")
+            if "go-back-n__data-error__0.4" in note:
+                raise ReportError("the caveat named a run that was not flagged")
+
+        suite.case(
+            "completion_estimator_caveat names a flagged run shown in the table",
+            completion_estimator_caveat_names_a_flagged_shown_run,
+        )
+
+        def completion_estimator_caveat_is_silent_otherwise() -> None:
+            shown = [{"run_id": "stop-and-wait__data-error__0.5"}]
+            flagged = reporter.flagged_run_ids(
+                ["go-back-n__data-error__0.5: no unambiguous RTT sample"]
+            )
+            if reporter.completion_estimator_caveat(shown, flagged) is not None:
+                raise ReportError("the caveat fired for a run that was not flagged")
+            if reporter.completion_estimator_caveat(shown, []) is not None:
+                raise ReportError("the caveat fired with no flagged runs at all")
+
+        suite.case(
+            "completion_estimator_caveat is silent when nothing shown is flagged",
+            completion_estimator_caveat_is_silent_otherwise,
+        )
+
+        def gbn_ack_path_free_selects_the_correct_clause() -> None:
+            # The default fixture gives every protocol the same nonzero
+            # retransmission count at every nonzero probability, so Go-Back-N's
+            # ACK paths are not retransmission-free here -- the false branch.
+            if reporter.gbn_ack_path_retransmission_free(records) is not False:
+                raise ReportError("the default fixture should not be ACK-retransmission-free")
+            if "rarely forces a retransmission" not in report:
+                raise ReportError("the report does not render the non-free clause")
+
+            free = synthetic_rows(
+                extra=lambda run: -int(round(run.probability * 100))
+                if run.protocol == "go-back-n" and run.impairment in ("ack-error", "ack-delay")
+                else 0
+            )
+            free_records = [dict(zip(runner.EXPERIMENT_COLUMNS, row)) for row in free]
+            if reporter.gbn_ack_path_retransmission_free(free_records) is not True:
+                raise ReportError("forcing zero ACK-path retransmissions was not detected")
+
+            source = directory / "gbn_ack_free.csv"
+            target = directory / "gbn_ack_free_report.md"
+            write_csv(source, free)
+            result = run_reporter(source, target)
+            if result.returncode != 0:
+                raise ReportError(f"a valid retransmission-free result set was refused: {result.stderr}")
+            if "zero retransmissions at every level tested" not in target.read_text(encoding="utf-8"):
+                raise ReportError("the report does not render the retransmission-free clause")
+
+        suite.case(
+            "gbn_ack_path_retransmission_free selects the correct report clause",
+            gbn_ack_path_free_selects_the_correct_clause,
+        )
+
+        def sr_matches_saw_selects_the_correct_clause() -> None:
+            # The default fixture uses one retransmission formula for every
+            # protocol, so Selective Repeat matches Stop-and-Wait exactly here
+            # -- the true branch.
+            if reporter.sr_matches_stop_and_wait_retransmissions(records, "data-error") is not True:
+                raise ReportError("the default fixture should have SR match Stop-and-Wait exactly")
+            if "matching Stop-and-Wait's retransmission count exactly" not in report:
+                raise ReportError("the report does not render the exact-match clause")
+
+            diverging = synthetic_rows(
+                extra=lambda run: 5
+                if run.protocol == "selective-repeat" and run.impairment == "data-error"
+                else 0
+            )
+            diverging_records = [dict(zip(runner.EXPERIMENT_COLUMNS, row)) for row in diverging]
+            if (
+                reporter.sr_matches_stop_and_wait_retransmissions(diverging_records, "data-error")
+                is not False
+            ):
+                raise ReportError("diverging SR retransmissions were not detected")
+
+            source = directory / "sr_diverges.csv"
+            target = directory / "sr_diverges_report.md"
+            write_csv(source, diverging)
+            result = run_reporter(source, target)
+            if result.returncode != 0:
+                raise ReportError(f"a valid diverging result set was refused: {result.stderr}")
+            if "landing close to Stop-and-Wait's retransmission count" not in target.read_text(
+                encoding="utf-8"
+            ):
+                raise ReportError("the report does not render the near-match clause")
+
+        suite.case(
+            "sr_matches_stop_and_wait_retransmissions selects the correct report clause",
+            sr_matches_saw_selects_the_correct_clause,
+        )
+
         def rendering_is_deterministic() -> None:
             again = directory / "report_again.md"
             if run_reporter(source, again).returncode != 0:
