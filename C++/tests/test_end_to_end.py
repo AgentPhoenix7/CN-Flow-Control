@@ -256,12 +256,13 @@ def main() -> int:
                 protocol, "ACK loss", ack_delay=0.3, seed=17
             ),
         )
-    suite.case(
-        "deterministic ACK corruption selective-repeat",
-        lambda: impaired_transfer(
-            "selective-repeat", "ACK corruption", ack_error=0.3, seed=19
-        ),
-    )
+    for protocol in PROTOCOLS:
+        suite.case(
+            f"deterministic ACK corruption {protocol}",
+            lambda protocol=protocol: impaired_transfer(
+                protocol, "ACK corruption", ack_error=0.3, seed=19
+            ),
+        )
 
     def duplicate_safe(protocol: str) -> None:
         metrics, received = run_transfer(
@@ -310,6 +311,8 @@ def main() -> int:
         ("go-back-n window above 255", ["--protocol", "go-back-n", "--input", str(INPUT_PATH), "--port", "9", "--window", "300"]),
         ("selective-repeat window above 128", ["--protocol", "selective-repeat", "--input", str(INPUT_PATH), "--port", "9", "--window", "200"]),
         ("zero window", ["--protocol", "go-back-n", "--input", str(INPUT_PATH), "--port", "9", "--window", "0"]),
+        ("go-back-n missing window", ["--protocol", "go-back-n", "--input", str(INPUT_PATH), "--port", "9"]),
+        ("selective-repeat missing window", ["--protocol", "selective-repeat", "--input", str(INPUT_PATH), "--port", "9"]),
         ("probability above one", ["--protocol", "go-back-n", "--input", str(INPUT_PATH), "--port", "9", "--data-error", "1.5"]),
         ("negative probability", ["--protocol", "go-back-n", "--input", str(INPUT_PATH), "--port", "9", "--ack-delay", "-0.1"]),
         ("payload above the frame limit", ["--protocol", "go-back-n", "--input", str(INPUT_PATH), "--port", "9", "--payload", "1500"]),
@@ -325,6 +328,20 @@ def main() -> int:
             result.returncode != 0 and bool(result.stderr.strip()) and not result.stdout.strip(),
             f"exit {result.returncode}, stdout {result.stdout!r}",
         )
+
+    ignored_window_result = run_sender_expecting_failure(
+        [
+            "--protocol", "stop-and-wait",
+            "--input", str(INPUT_PATH),
+            "--port", "9",
+            "--window", "4",
+        ]
+    )
+    suite.check(
+        "sender warns when --window is ignored for stop-and-wait",
+        "ignored" in ignored_window_result.stderr,
+        f"stderr {ignored_window_result.stderr!r}",
+    )
 
     receiver_rejections = [
         ("missing output path", ["--port", "9"]),

@@ -205,13 +205,11 @@ unsigned long long parse_unsigned(
     throw std::invalid_argument(option + " requires a non-negative integer");
   }
 
+  // text is already confirmed digits-only above, so stoull can only fail by
+  // throwing out_of_range on overflow -- it cannot leave trailing characters.
   unsigned long long value = 0U;
   try {
-    std::size_t consumed = 0U;
-    value = std::stoull(text, &consumed);
-    if (consumed != text.size()) {
-      throw std::invalid_argument("trailing characters");
-    }
+    value = std::stoull(text);
   } catch (const std::exception&) {
     throw std::invalid_argument(option + " is not a valid integer: " + text);
   }
@@ -311,17 +309,29 @@ Options parse_options(int argc, char* argv[])
 
   switch (options.protocol) {
     case ArqProtocol::StopAndWait:
-      // Stop-and-Wait keeps exactly one frame outstanding by definition.
+      // Stop-and-Wait keeps exactly one frame outstanding by definition; a
+      // user-supplied window is silently overridden, but a non-default
+      // value is worth a warning rather than an unexplained no-op.
+      if (has_window && options.window_size != 1U) {
+        std::cerr << "warning: --window is ignored for stop-and-wait"
+                     " (forced to 1, one outstanding frame by definition)\n";
+      }
       options.window_size = 1U;
       break;
     case ArqProtocol::GoBackN:
+      // Unlike Stop-and-Wait, this window governs real sliding-window
+      // behavior: silently defaulting it to 1 would run Go-Back-N with no
+      // observable difference from Stop-and-Wait on a merely forgotten
+      // flag, so it must be given explicitly.
       if (!has_window) {
-        options.window_size = 1U;
+        throw std::invalid_argument("--window is required for go-back-n");
       }
       break;
     case ArqProtocol::SelectiveRepeat:
       if (!has_window) {
-        options.window_size = 1U;
+        throw std::invalid_argument(
+          "--window is required for selective-repeat"
+        );
       }
       if (options.window_size > SELECTIVE_REPEAT_MAX_WINDOW) {
         throw std::invalid_argument(
@@ -378,8 +388,10 @@ std::uint64_t elapsed_ms_since(
   const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
     std::chrono::steady_clock::now() - start
   ).count();
-  const auto measured = elapsed > 0 ? static_cast<std::uint64_t>(elapsed) : 0U;
-  return std::max<std::uint64_t>(1U, measured);
+  // A single comparison covers both the 1 ms floor and the (never expected,
+  // but unsafe to cast directly) case of a non-positive duration -- casting
+  // a negative count to std::uint64_t would wrap to a huge value instead.
+  return elapsed > 1 ? static_cast<std::uint64_t>(elapsed) : 1U;
 }
 
 /**
