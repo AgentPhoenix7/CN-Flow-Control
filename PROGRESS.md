@@ -20,7 +20,7 @@ Build sender and receiver programs that transfer framed file data over a bidirec
 
 The simulated channel must support reproducible bit corruption and excessive delay/loss on both DATA and ACK paths. The receiver verifies Assignment 1 checksum/CRC protection before accepting data. Timers, acknowledgments, duplicate handling, window movement, buffering, and retransmission operate at the application layer rather than relying on TCP reliability.
 
-Demonstration: **24–28 August 2026**. Report submission: **31 August–4 September 2026**.
+Demonstration: **31 August–4 September 2026**. Report submission: **7–11 September 2026**.
 
 ## Confirmed Design Decisions
 
@@ -124,7 +124,7 @@ Demonstration: **24–28 August 2026**. Report submission: **31 August–4 Septe
 
 Implementation, review, and post-review cleanup are complete. All 8 planned tasks are done, the final whole-branch review returned "ready to merge with fixes" and was fixed and re-reviewed clean, and a follow-up cleanup pass (7 September 2026) fixed 7 of the 9 remaining deferred Minor findings from Tasks 5-7 (the other 2 are recorded as deliberate trade-offs under Known Limitations). Every C++ module, the three ARQ protocols, the sender/receiver applications, and the full Python experiment/validation/plotting/report pipeline exist, are GREEN on a clean rebuild (206/206 tests), and the committed evidence (`results/experiments.csv`, all 16 SVG plots, `report/report.md`) reproduces byte-identically from a clean state. There is no more implementation work planned on this branch.
 
-**Note on the submission window:** `AGENTS.md` states the demonstration was due 24-28 August 2026 and the report is due 31 August-4 September 2026. Today's date is 7 September 2026, after that window. This is a scheduling fact for the user to act on, not something this file can resolve -- flagging it here so the handoff does not silently imply the deadline is still ahead.
+**Note on the submission window:** `AGENTS.md` was updated on 7 September 2026 to move the demonstration to 31 August-4 September 2026 and the report to 7-11 September 2026 (both one week later than originally stated), since today's date fell after the original window. The demonstration date range has therefore also already passed as of this writing; only the report window (7-11 September 2026) is still ahead.
 
 ## Known Limitations
 
