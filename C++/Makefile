@@ -39,8 +39,10 @@ APPLICATION_SOURCES := src/channel.cpp src/checksum.cpp src/crc.cpp \
 	src/stop_and_wait.cpp src/timer.cpp
 SENDER := $(BUILD_DIR)/sender
 SENDER_SOURCES := $(APPLICATION_SOURCES) src/sender_main.cpp
+SENDER_OBJECTS := $(patsubst src/%.cpp,$(BUILD_DIR)/%.o,$(SENDER_SOURCES))
 RECEIVER := $(BUILD_DIR)/receiver
 RECEIVER_SOURCES := $(APPLICATION_SOURCES) src/receiver_main.cpp
+RECEIVER_OBJECTS := $(patsubst src/%.cpp,$(BUILD_DIR)/%.o,$(RECEIVER_SOURCES))
 END_TO_END_TEST := tests/test_end_to_end.py
 
 # Python experiment, validation, plotting, and report tooling. These run in the
@@ -171,11 +173,11 @@ $(GO_BACK_N_TEST): $(GO_BACK_N_TEST_SOURCES) include/go_back_n.hpp include/proto
 $(SELECTIVE_REPEAT_TEST): $(SELECTIVE_REPEAT_TEST_SOURCES) include/selective_repeat.hpp include/protocol.hpp | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(SELECTIVE_REPEAT_TEST_SOURCES) -o $@
 
-$(SENDER): $(SENDER_SOURCES) $(wildcard include/*.hpp) | $(BUILD_DIR)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(SENDER_SOURCES) -o $@
+$(SENDER): $(SENDER_OBJECTS) | $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) $(SENDER_OBJECTS) -o $@
 
-$(RECEIVER): $(RECEIVER_SOURCES) $(wildcard include/*.hpp) | $(BUILD_DIR)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(RECEIVER_SOURCES) -o $@
+$(RECEIVER): $(RECEIVER_OBJECTS) | $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) $(RECEIVER_OBJECTS) -o $@
 
 $(BUILD_DIR)/%.o: src/%.cpp | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
