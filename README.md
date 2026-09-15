@@ -6,10 +6,7 @@
 [![Tooling](https://img.shields.io/badge/tooling-Python%203.13%20%2F%20uv-3776AB?logo=python&logoColor=white)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-A Computer Networks course assignment implementing **Data Link Layer flow
-control over TCP**. A sender and a receiver exchange a file through a single
-TCP socket while three classic Automatic Repeat reQuest (ARQ) protocols are
-implemented and compared:
+A Computer Networks course assignment implementing **Data Link Layer flow control over TCP**. A sender and a receiver exchange a file through a single TCP socket while three classic Automatic Repeat reQuest (ARQ) protocols are implemented and compared:
 
 | Protocol | Window | Retransmission on loss/timeout |
 | --- | --- | --- |
@@ -17,10 +14,7 @@ implemented and compared:
 | **Go-Back-N** | *N* | resend the entire outstanding window |
 | **Selective Repeat** | *N* | resend only the missing/timed-out frame |
 
-TCP only carries the bytes — everything the assignment actually asks for is
-simulated at the application layer on top of it: frame **framing**,
-**CRC-16 error detection**, **bit corruption**, and **packet loss / excessive
-delay**, independently on both the DATA and ACK paths.
+TCP only carries the bytes — everything the assignment actually asks for is simulated at the application layer on top of it: frame **framing**, **CRC-16 error detection**, **bit corruption**, and **packet loss / excessive delay**, independently on both the DATA and ACK paths.
 
 > Based on `Assignment-2-CO2-FlowControl.pdf` (included in this repo).
 
@@ -47,29 +41,19 @@ Or try it interactively without touching any flags:
 ./C++-basic/run_demo.sh   # builds, then walks you through protocol/window/impairment/file
 ```
 
-See [`C++-basic/README.md`](C++-basic/README.md) for the full wire format,
-protocol behavior, CLI flags, and every build/test/experiment target.
+See [`C++-basic/README.md`](C++-basic/README.md) for the full wire format, protocol behavior, CLI flags, and every build/test/experiment target.
 
 ## How it works, in one picture
 
-<p align="center"><img src="docs/assets/architecture.svg" alt="Sender and receiver exchange DATA and ACK frames through a simulated impairment channel riding on one TCP socket" width="820"></p>
+![Sender and receiver exchange DATA and ACK frames through a simulated impairment channel riding on one TCP socket](docs/assets/architecture.svg)
 
-Each protocol layer (`stop_and_wait`, `go_back_n`, `selective_repeat`) is
-built from the same small set of shared modules — frame layout, CRC-16,
-channel impairment injection, socket I/O, and an RTT-adaptive timer — so the
-three implementations differ only in *windowing and retransmission policy*,
-which is exactly what the assignment asks you to compare.
+Each protocol layer (`stop_and_wait`, `go_back_n`, `selective_repeat`) is built from the same small set of shared modules — frame layout, CRC-16, channel impairment injection, socket I/O, and an RTT-adaptive timer — so the three implementations differ only in *windowing and retransmission policy*, which is exactly what the assignment asks you to compare.
 
 ## Documentation
 
-- [`C++-basic/README.md`](C++-basic/README.md) — wire format, CLI flags,
-  build/test/experiment commands, and known simplifications.
-- [`C++-basic/explanation.md`](C++-basic/explanation.md) — a complete,
-  no-assumptions walkthrough of every piece of the project, from "what is a
-  socket" up through why Selective Repeat needs a map instead of an array.
-- [`C++-basic/report/report.tex`](C++-basic/report/report.tex) — the LaTeX
-  source for the generated experiment report (`make -C C++-basic report`
-  renders `report/report.pdf`).
+- [`C++-basic/README.md`](C++-basic/README.md) — wire format, CLI flags, build/test/experiment commands, and known simplifications.
+- [`C++-basic/explanation.md`](C++-basic/explanation.md) — a complete, no-assumptions walkthrough of every piece of the project, from "what is a socket" up through why Selective Repeat needs a map instead of an array.
+- [`C++-basic/report/report.tex`](C++-basic/report/report.tex) — the LaTeX source for the generated experiment report (`make -C C++-basic report` renders `report/report.pdf`).
 
 ## License
 
