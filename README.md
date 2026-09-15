@@ -1,61 +1,75 @@
 # CN-Flow-Control
 
-A Computer Networks course assignment simulating Data Link Layer flow control
-over TCP. Sender and receiver programs transfer a file through a single
-bidirectional socket while three Automatic Repeat reQuest (ARQ) protocols are
+[![Language](https://img.shields.io/badge/language-C%2B%2B17-00599C?logo=cplusplus&logoColor=white)](C++-basic/)
+[![Build](https://img.shields.io/badge/build-Makefile-informational?logo=gnu&logoColor=white)](C++-basic/Makefile)
+[![Protocols](https://img.shields.io/badge/ARQ-Stop--and--Wait%20%7C%20Go--Back--N%20%7C%20Selective%20Repeat-6d28d9)](#repository-layout)
+[![Tooling](https://img.shields.io/badge/tooling-Python%203.13%20%2F%20uv-3776AB?logo=python&logoColor=white)](pyproject.toml)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+A Computer Networks course assignment implementing **Data Link Layer flow
+control over TCP**. A sender and a receiver exchange a file through a single
+TCP socket while three classic Automatic Repeat reQuest (ARQ) protocols are
 implemented and compared:
 
-- **Stop-and-Wait**
-- **Go-Back-N**
-- **Selective Repeat**
+| Protocol | Window | Retransmission on loss/timeout |
+| --- | --- | --- |
+| **Stop-and-Wait** | 1 | resend the one outstanding frame |
+| **Go-Back-N** | *N* | resend the entire outstanding window |
+| **Selective Repeat** | *N* | resend only the missing/timed-out frame |
 
-TCP is used only as the carrier. Framing, checksum/CRC error detection, bit
-corruption, and excessive delay/loss are simulated at the application layer,
-reusing and extending the framing, checksum/CRC, error-injection, and socket
-modules from the course's prior assignment (kept unchanged in its own
-repository).
+TCP only carries the bytes — everything the assignment actually asks for is
+simulated at the application layer on top of it: frame **framing**,
+**CRC-16 error detection**, **bit corruption**, and **packet loss / excessive
+delay**, independently on both the DATA and ACK paths.
 
-## Status
-
-Implementation, testing, and the experiment/report pipeline are complete and
-verified on a clean rebuild. See [`PROGRESS.md`](PROGRESS.md) for the current
-state, exact verification commands and results, and known limitations.
+> Based on `Assignment-2-CO2-FlowControl.pdf` (included in this repo).
 
 ## Repository layout
 
 | Path | Contents |
 | --- | --- |
-| [`C++/`](C++/) | The active C++17 implementation: headers, sources, tests, experiment/report tooling, and generated evidence. |
-| [`AGENTS.md`](AGENTS.md) | Contributor guidelines, wire contract, and coding conventions (also `CLAUDE.md`, a symlink to the same file). |
-| [`PROGRESS.md`](PROGRESS.md) | Authoritative current-state handoff: completed work, verification commands, and known limitations. |
-| [`docs/`](docs/) | Design notes and implementation plans. |
-| `Assignment-2-CO2-FlowControl.pdf`, `Assignment-2.m4a` | The assignment brief and the professor's recorded walkthrough. |
-| `pyproject.toml`, `uv.lock` | The root `uv`-managed Python environment used by the experiment, validation, plotting, and report tooling under `C++/tools/`. |
+| [`C++-basic/`](C++-basic/) | The implementation: C++17 sender/receiver, all three ARQ protocols, an automated experiment matrix, plots, and a generated PDF report. |
+| [`Assignment-2-CO2-FlowControl.pdf`](Assignment-2-CO2-FlowControl.pdf) | The assignment brief. |
+| [`pyproject.toml`](pyproject.toml), [`uv.lock`](uv.lock) | Root `uv`-managed Python environment used by `C++-basic/tools/` (experiment runner, plotting, report generation). |
+| [`LICENSE`](LICENSE) | MIT license. |
 
 ## Quick start
 
 ```bash
-make -C C++ all           # strict C++17 build of build/sender and build/receiver
-make -C C++ test          # unit, end-to-end, and Python tooling tests
-make -C C++ experiments   # run the reproducible 63-run experiment matrix
-make -C C++ results       # validate the results, then plot and render the report
+make -C C++-basic all           # strict C++17 build -> C++-basic/build/{sender,receiver}
+make -C C++-basic experiments   # run the reproducible impairment-sweep experiment matrix
+make -C C++-basic results       # experiments + SVG plots + LaTeX/PDF report
 ```
 
-See [`C++/README.md`](C++/README.md) for the full wire format, protocol
-behavior, build/test targets, and how the experiment and report pipeline
-works.
+Or try it interactively without touching any flags:
+
+```bash
+./C++-basic/run_demo.sh   # builds, then walks you through protocol/window/impairment/file
+```
+
+See [`C++-basic/README.md`](C++-basic/README.md) for the full wire format,
+protocol behavior, CLI flags, and every build/test/experiment target.
+
+## How it works, in one picture
+
+<p align="center"><img src="docs/assets/architecture.svg" alt="Sender and receiver exchange DATA and ACK frames through a simulated impairment channel riding on one TCP socket" width="820"></p>
+
+Each protocol layer (`stop_and_wait`, `go_back_n`, `selective_repeat`) is
+built from the same small set of shared modules — frame layout, CRC-16,
+channel impairment injection, socket I/O, and an RTT-adaptive timer — so the
+three implementations differ only in *windowing and retransmission policy*,
+which is exactly what the assignment asks you to compare.
 
 ## Documentation
 
-- [`C++/README.md`](C++/README.md) — data-frame wire format, FCS schemes,
-  ARQ protocol behavior, and the build/test/experiment commands.
-- [`C++/report/report.md`](C++/report/report.md) — the generated report
-  comparing all three protocols under no impairment and under bit corruption
-  and excessive delay on both the DATA and ACK paths.
-- [`PROGRESS.md`](PROGRESS.md) — conversation handoff and current verified
-  project state.
-- [`AGENTS.md`](AGENTS.md) — repository guidelines for anyone (human or
-  agent) working in this codebase.
+- [`C++-basic/README.md`](C++-basic/README.md) — wire format, CLI flags,
+  build/test/experiment commands, and known simplifications.
+- [`C++-basic/explanation.md`](C++-basic/explanation.md) — a complete,
+  no-assumptions walkthrough of every piece of the project, from "what is a
+  socket" up through why Selective Repeat needs a map instead of an array.
+- [`C++-basic/report/report.tex`](C++-basic/report/report.tex) — the LaTeX
+  source for the generated experiment report (`make -C C++-basic report`
+  renders `report/report.pdf`).
 
 ## License
 
