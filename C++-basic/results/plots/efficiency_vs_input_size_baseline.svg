@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="440" viewBox="0 0 760 440">
+<title>Efficiency vs input file size (clean baseline)</title><desc>no impairment on either path</desc>
+<rect x="0" y="0" width="760" height="440" fill="white" />
+<text x="380" y="24" text-anchor="middle" font-size="16" font-family="sans-serif" font-weight="bold">Efficiency vs input file size (clean baseline)</text>
+<text x="380" y="42" text-anchor="middle" font-size="11" font-family="sans-serif" fill="#555">no impairment on either path</text>
+<line x1="70" y1="50" x2="70" y2="380" stroke="#333" />
+<line x1="70" y1="380" x2="730" y2="380" stroke="#333" />
+<line x1="70" y1="380.0" x2="730" y2="380.0" stroke="#eee" />
+<text x="62" y="384.0" text-anchor="end" font-size="10" font-family="sans-serif">0</text>
+<line x1="70" y1="314.0" x2="730" y2="314.0" stroke="#eee" />
+<text x="62" y="318.0" text-anchor="end" font-size="10" font-family="sans-serif">0.163</text>
+<line x1="70" y1="248.0" x2="730" y2="248.0" stroke="#eee" />
+<text x="62" y="252.0" text-anchor="end" font-size="10" font-family="sans-serif">0.327</text>
+<line x1="70" y1="182.0" x2="730" y2="182.0" stroke="#eee" />
+<text x="62" y="186.0" text-anchor="end" font-size="10" font-family="sans-serif">0.49</text>
+<line x1="70" y1="116.0" x2="730" y2="116.0" stroke="#eee" />
+<text x="62" y="120.0" text-anchor="end" font-size="10" font-family="sans-serif">0.653</text>
+<line x1="70" y1="50.0" x2="730" y2="50.0" stroke="#eee" />
+<text x="62" y="54.0" text-anchor="end" font-size="10" font-family="sans-serif">0.817</text>
+<line x1="70.0" y1="380" x2="70.0" y2="385" stroke="#333" />
+<text x="70.0" y="398" text-anchor="middle" font-size="10" font-family="sans-serif">47</text>
+<line x1="350.5" y1="380" x2="350.5" y2="385" stroke="#333" />
+<text x="350.5" y="398" text-anchor="middle" font-size="10" font-family="sans-serif">537</text>
+<line x1="730.0" y1="380" x2="730.0" y2="385" stroke="#333" />
+<text x="730.0" y="398" text-anchor="middle" font-size="10" font-family="sans-serif">1200</text>
+<text x="400" y="432" text-anchor="middle" font-size="12" font-family="sans-serif">input size (bytes)</text>
+<text x="14" y="215" text-anchor="middle" font-size="12" font-family="sans-serif" transform="rotate(-90 14 215)">efficiency (payload bytes / wire bytes)</text>
+<path d="M70.0,229.3 L350.5,93.0 L730.0,95.0" fill="none" stroke="#2563eb" stroke-width="2" />
+<circle cx="70.0" cy="229.3" r="4" fill="#2563eb" />
+<circle cx="350.5" cy="93.0" r="4" fill="#2563eb" />
+<circle cx="730.0" cy="95.0" r="4" fill="#2563eb" />
+<line x1="588" y1="64" x2="610" y2="64" stroke="#2563eb" stroke-width="2" />
+<circle cx="599.0" cy="64.0" r="4" fill="#2563eb" />
+<text x="615" y="68" font-size="11" font-family="sans-serif">stop-and-wait</text>
+<path d="M70.0,229.3 L350.5,164.8 L730.0,105.2" fill="none" stroke="#f97316" stroke-width="2" />
+<rect x="66.5" y="225.8" width="7" height="7" fill="#f97316" />
+<rect x="347.0" y="161.3" width="7" height="7" fill="#f97316" />
+<rect x="726.5" y="101.7" width="7" height="7" fill="#f97316" />
+<line x1="588" y1="82" x2="610" y2="82" stroke="#f97316" stroke-width="2" />
+<rect x="595.5" y="78.5" width="7" height="7" fill="#f97316" />
+<text x="615" y="86" font-size="11" font-family="sans-serif">go-back-n</text>
+<path d="M70.0,229.3 L350.5,216.0 L730.0,123.5" fill="none" stroke="#16a34a" stroke-width="2" />
+<polygon points="70.0,224.8 66.0,232.8 74.0,232.8" fill="#16a34a" />
+<polygon points="350.5,211.5 346.5,219.5 354.5,219.5" fill="#16a34a" />
+<polygon points="730.0,119.0 726.0,127.0 734.0,127.0" fill="#16a34a" />
+<line x1="588" y1="100" x2="610" y2="100" stroke="#16a34a" stroke-width="2" />
+<polygon points="599.0,95.5 595.0,103.5 603.0,103.5" fill="#16a34a" />
+<text x="615" y="104" font-size="11" font-family="sans-serif">selective-repeat</text>
+</svg>

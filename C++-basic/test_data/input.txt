@@ -1,0 +1,7 @@
+This is a small sample file used to exercise the basic Stop-and-Wait, Go-Back-N,
+and Selective Repeat flow control implementations. It is long enough to span
+several 46-byte frames so that windowing, cumulative acknowledgement, and
+out-of-order buffering all actually get exercised end to end, instead of a
+single-frame transfer that would never show the difference between the three
+protocols. Feel free to replace this file with any other text or binary file --
+the sender frames it in fixed 46-byte chunks regardless of its contents.
