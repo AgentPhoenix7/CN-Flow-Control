@@ -97,7 +97,7 @@ void run_stop_and_wait_receiver(const TcpSocket& socket, const std::string& outp
     if (msg.tag != TAG_DATA) continue;
 
     DataFrame frame;
-    if (!deserialize_and_verify(msg.body, frame)) continue;  // corrupted: discard, no ACK
+    if (!deserialize_and_verify(msg.body, frame)) continue;  // bad DATA size/CRC-32: no ACK
 
     if (frame.seq == expected_seq) {
       out.write(reinterpret_cast<const char*>(frame.payload.data()), frame.length);
@@ -206,7 +206,7 @@ repeat:
   if message is not DATA:
     continue
 
-  deserialize frame and verify CRC
+  deserialize the 65-byte DATA body and verify its four-byte CRC-32 FCS
 
   if frame is corrupted:
     continue

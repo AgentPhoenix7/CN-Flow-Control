@@ -19,6 +19,9 @@ enum : std::uint8_t {
 /// TCP is only the carrier here: this 1-byte tag plus each tag's fixed body length
 /// is the *external* record framing, kept outside the simulated data frame so a
 /// corrupted simulated header can never desynchronize the byte stream.
+/// DATA has a 65-byte body (including its four-byte CRC-32 FCS): 66 bytes with tag.
+/// ACK has a two-byte repeated-sequence body: three bytes with tag. DONE/DONE_ACK
+/// have no body and take one tag byte each.
 struct RecvMessage {
   RecvStatus status = RecvStatus::Closed;
   std::uint8_t tag = 0;

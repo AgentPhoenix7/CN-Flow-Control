@@ -21,6 +21,9 @@ bool Channel::apply(std::vector<std::uint8_t>& body) {
 }  // namespace basic_flow
 
 /*
+The caller supplies only the body: 65 DATA bytes (header, payload and CRC-32 FCS)
+or 2 ACK bytes. The external message tag never enters this impairment function.
+
 generate random number between 0 and 1
 
 if random number < loss probability:

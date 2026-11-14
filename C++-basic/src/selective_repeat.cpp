@@ -127,7 +127,7 @@ void run_selective_repeat_receiver(const TcpSocket& socket, const std::string& o
     if (msg.tag != TAG_DATA) continue;
 
     DataFrame frame;
-    if (!deserialize_and_verify(msg.body, frame)) continue;  // corrupted: discard, no ACK
+    if (!deserialize_and_verify(msg.body, frame)) continue;  // bad DATA size/CRC-32: no ACK
 
     if (forward_distance(next_deliver, frame.seq) < window) {
       // Within the receive window: buffer it (re-buffering a duplicate is harmless)
@@ -280,7 +280,7 @@ repeat:
     continue
 
 
-  deserialize and CRC-check frame
+  deserialize the 65-byte DATA body and verify its four-byte CRC-32 FCS
 
   if frame is corrupted:
     continue

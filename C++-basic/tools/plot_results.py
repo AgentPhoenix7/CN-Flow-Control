@@ -4,6 +4,10 @@ tools/run_experiments.py). No external dependencies -- every chart is drawn
 by hand as plain SVG using only the Python standard library, so no plotting
 library needs to be installed to view them (any browser renders SVG).
 
+Efficiency uses the CSV's useful payload bytes divided by transmitted 65-byte
+DATA frame bytes (15-byte header, 46-byte payload, four-byte CRC-32 FCS).
+External tags, ACK/control messages and TCP/IP headers are excluded.
+
 Usage:
     python3 tools/plot_results.py
     python3 tools/plot_results.py --csv results/experiments.csv --out-dir results/plots
@@ -218,7 +222,7 @@ def main() -> None:
 
     metric_specs = [
         ("efficiency", "efficiency_vs_probability_{}.svg", "Efficiency vs {} probability",
-         "probability", "efficiency (payload bytes / wire bytes)"),
+         "probability", "efficiency (payload / DATA frame bytes)"),
         ("elapsed_ms", "completion_ms_vs_probability_{}.svg", "Completion time vs {} probability",
          "probability", "elapsed time (ms)"),
         ("retransmissions", "retransmissions_vs_probability_{}.svg", "Retransmissions vs {} probability",
@@ -246,7 +250,7 @@ def main() -> None:
             series[protocol][size] = statistics.mean(values) if values else None
     out_path = args.out_dir / "efficiency_vs_input_size_baseline.svg"
     render_line_chart(out_path, "Efficiency vs input file size (clean baseline)", "no impairment on either path",
-                       "input size (bytes)", "efficiency (payload bytes / wire bytes)", sizes, series)
+                       "input size (bytes)", "efficiency (payload / DATA frame bytes)", sizes, series)
     written.append(out_path)
 
     for path in written:

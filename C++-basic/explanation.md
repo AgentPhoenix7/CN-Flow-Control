@@ -10,7 +10,7 @@ This document explains **every piece** of the `C++-basic/` project, starting fro
 2. [Background concepts you need first](#2-background-concepts-you-need-first)
 3. [The problem this project solves](#3-the-problem-this-project-solves)
 4. [The data frame: how one chunk of the file is packaged](#4-the-data-frame-how-one-chunk-of-the-file-is-packaged)
-5. [CRC-16: how corruption gets detected](#5-crc-16-how-corruption-gets-detected)
+5. [CRC-32: how corruption gets detected](#5-crc-32-how-corruption-gets-detected)
 6. [The simulated channel: manufacturing bad luck on purpose](#6-the-simulated-channel-manufacturing-bad-luck-on-purpose)
 7. [Sockets: the actual network pipe](#7-sockets-the-actual-network-pipe)
 8. [The "wire protocol" how messages don't get confused with each other](#8-the-wire-protocol-how-messages-dont-get-confused-with-each-other)
@@ -75,7 +75,7 @@ There is a **sender program** (has the file, wants to transmit it) and a **recei
 
 ### 2.1 What is a byte?
 
-A **byte** is 8 bits (8 on/off switches), so it can hold a number from 0 to 255. Files, network messages — everything in this project — are just long sequences of bytes. When you see `0x8005` in this document, that's **hexadecimal** (base 16) notation for a number; `0x8005` = 32773 in ordinary decimal. Hex is just a more compact way to write byte patterns.
+A **byte** is 8 bits (8 on/off switches), so it can hold a number from 0 to 255. Files, network messages — everything in this project — are just long sequences of bytes. When you see `0xEDB88320` in this document, that's **hexadecimal** (base 16) notation for a number; `0xEDB88320` = 3988292384 in ordinary decimal. Hex is just a more compact way to write byte patterns.
 
 ### 2.2 What is a network socket?
 
@@ -121,7 +121,7 @@ When a multi-byte number (like a 2-byte length field) is put on the wire, everyo
 
 ### 2.6 What is XOR (`^`)?
 
-XOR is a bit operation: `1 XOR 1 = 0`, `0 XOR 0 = 0`, `1 XOR 0 = 1`. It's used twice in this project: to flip a single bit when *simulating* corruption (`byte ^= (1 << bit_position)` toggles exactly one bit), and inside the CRC calculation (see [section 5](#5-crc-16-how-corruption-gets-detected)).
+XOR is a bit operation: `1 XOR 1 = 0`, `0 XOR 0 = 0`, `1 XOR 0 = 1`. It's used twice in this project: to flip a single bit when *simulating* corruption (`byte ^= (1 << bit_position)` toggles exactly one bit), and inside the CRC calculation (see [section 5](#5-crc-32-how-corruption-gets-detected)).
 
 ### 2.7 What is a pseudo-random number generator (RNG) and a "seed"?
 
@@ -148,24 +148,23 @@ More frames in flight generally means faster transfers (less idle waiting), but 
 Every 46-byte piece of the file gets wrapped into a **frame** before it's sent. Here is the exact byte layout (this matches [include/frame.hpp](./include/frame.hpp)):
 
 ```text
-  byte offset:   0         6         12    14   15                        61 62 63
-                 │         │          │     │    │                         │  │  │
-                 ▼         ▼          ▼     ▼    ▼                         ▼  ▼  ▼
-                ┌──────────┬──────────┬─────┬────┬──────────────────────┬────────┐
-                │  Source  │   Dest   │ Len │Seq │      Payload         │  CRC   │
-                │   MAC    │   MAC    │     │    │   (46 bytes, zero-   │ (2     │
-                │ (6 bytes)│ (6 bytes)│(2 B)│(1B)│    padded if short)  │ bytes) │
-                └──────────┴──────────┴─────┴────┴──────────────────────┴────────┘
-                 └────── HEADER (15 bytes) ──────┘                       └TRAILER┘
+  Byte offsets (inclusive):
+    0--5    Source MAC       6 bytes
+    6--11   Destination MAC  6 bytes
+   12--13   Payload length   2 bytes
+       14   Sequence number  1 byte
+   15--60   Padded payload  46 bytes
+   61--64   CRC-32 FCS       4 bytes
 
-                Total frame size on the wire: 15 + 46 + 2 = 63 bytes
+  Simulated DATA frame: 15 + 46 + 4 = 65 bytes
+  Tagged TCP message:   1 + 65      = 66 bytes
 ```
 
 - **Source / Destination MAC (6 bytes each):** in real Ethernet hardware, a MAC address identifies a physical network card. Here they're just fixed placeholder values (`02:00:00:00:00:01` and `...:02`) included because the assignment's frame diagram requires them — this simulation only ever has one sender and one receiver, so they're not actually used to route anything.
 - **Length (2 bytes):** the **true** number of meaningful payload bytes in *this* frame (0–46). Every frame's payload area is always 46 bytes wide on the wire, but the *last* frame of a file is often shorter than 46 real bytes — the leftover space is filled with zero bytes ("padding"), and Length is how the receiver knows to keep only the first `Length` bytes and discard the padding.
 - **Sequence number / "Seq" (1 byte):** a counter, 0, 1, 2, 3, ... that identifies *which* piece of the file this frame carries. Because it's only 1 byte, it can only count 0–255 before it **wraps around** back to 0 — this is why the project cares about "sequence number wraparound" as a correctness case (a 500-frame file reuses sequence number 0 for its 257th frame, its 513th frame, etc.).
 - **Payload (46 bytes):** the actual file bytes for this piece.
-- **CRC (2 bytes):** a small "fingerprint" computed from everything before it (the 15-byte header + the 46-byte payload), used to detect corruption. Explained fully in the next section.
+- **CRC (4 bytes):** a small "fingerprint" computed from everything before it (the 15-byte header + the 46-byte payload), used to detect corruption. Explained fully in the next section.
 
 ```text
 Splitting a 537-byte file into frames:
@@ -180,7 +179,7 @@ Splitting a 537-byte file into frames:
 
 ---
 
-## 5. CRC-16: how corruption gets detected
+## 5. CRC-32: how corruption gets detected
 
 ### 5.1 The idea in plain language
 
@@ -197,32 +196,47 @@ A **CRC (Cyclic Redundancy Check)** is a small number computed from a larger blo
    └─────────────┘                          └─────────────┘
          │                                        │
          ▼                                        ▼
-     CRC = 0xAB12                      compare  CRC = 0xAB12 ?  ──▶ if equal: "frame is intact"
+     CRC = 0x1234ABCD                      compare  CRC = 0x1234ABCD ?  ──▶ if equal: "frame is intact"
          │
          ▼
    attach CRC to the frame
    and send the whole thing            (mismatched CRC = discard the frame, don't write its payload, don't ACK it)
 ```
 
-### 5.2 How the number is actually computed (`crc16_compute` in [src/crc16.cpp](./src/crc16.cpp))
+### 5.2 How the number is actually computed (`crc32_compute` in [src/crc32.cpp](./src/crc32.cpp))
 
-The algorithm processes the data **one bit at a time**, maintaining a running 16-bit value (`crc`), starting at 0. For every bit of every byte:
+The project uses **CRC-32/ISO-HDLC**, a 32-bit CRC. Its normal polynomial is
+`0x04C11DB7`; this reflected, least-significant-bit-first implementation uses
+`0xEDB88320`. Start with `0xFFFFFFFF`, XOR each byte into the low eight bits,
+then process its eight bits:
 
-1. Look at the current top bit of `crc`.
-2. Shift `crc` left by one bit (this bit falls off the top and is discarded).
-3. If that top bit *(before shifting)* was a 1, XOR `crc` with a fixed constant called the **polynomial**, `0x8005`.
+1. Read the lowest bit of `crc`.
+2. Shift `crc` right by one bit.
+3. If the old lowest bit was 1, XOR with `0xEDB88320`.
+4. After all bytes, XOR with `0xFFFFFFFF`.
 
 ```text
+   crc = 0xFFFFFFFF
    for each byte in the data:
-       crc = crc XOR (byte shifted into the top 8 bits)
-       repeat 8 times (once per bit of this byte):
-           if crc's top bit is 1:
-               crc = (crc << 1) XOR 0x8005
+       crc = crc XOR byte
+       repeat 8 times:
+           if crc's lowest bit is 1:
+               crc = (crc >> 1) XOR 0xEDB88320
            else:
-               crc = (crc << 1)
+               crc = crc >> 1
+   return crc XOR 0xFFFFFFFF
 ```
 
-Why does this detect corruption so reliably? Because a single flipped bit anywhere in the input changes the running `crc` value in a way that (for a well-chosen polynomial like `0x8005`) essentially never produces the same final CRC as the original — the "collision" probability for a random single-bit or small-burst error is extremely low. This project consistently uses the **same** CRC-16 (polynomial `0x8005`, starting value 0) on both the sender (to *compute* the trailer) and the receiver (to *recompute* it and compare) — see `deserialize_and_verify` in [src/frame.cpp](./src/frame.cpp).
+The reference input `"123456789"` produces `0xCBF43926`; empty input produces
+`0x00000000`. The resulting number is appended as four bytes, most-significant
+byte first, to match this custom protocol's network byte order. This does not
+make the custom frame a standard Ethernet frame.
+
+CRC-32 detects every single-bit error and every contiguous error burst up to
+32 bits. Longer errors can sometimes escape detection. The sender and receiver
+use the same routine over the 15-byte header and all 46 padded payload bytes;
+the receiver compares its result with the four-byte FCS in
+`deserialize_and_verify` ([src/frame.cpp](./src/frame.cpp)).
 
 ### 5.3 What happens on a CRC mismatch
 
@@ -235,7 +249,7 @@ If the receiver recomputes the CRC and it doesn't match the CRC that arrived in 
 Because this project runs on `127.0.0.1` (loopback), the network is actually extremely reliable — bytes essentially never really get corrupted or lost in transit. But the whole point of the assignment is to test what Stop-and-Wait / Go-Back-N / Selective Repeat do **when things go wrong**. So the project **fakes** bad luck on purpose, using the `Channel` class ([include/channel.hpp](./include/channel.hpp), [src/channel.cpp](./src/channel.cpp)):
 
 ```text
-   Outgoing frame body (the 63 bytes about to be sent)
+   Outgoing frame body (the 65 bytes about to be sent)
          │
          ▼
    ┌────────────────────────────────────────────────────────────┐
@@ -329,7 +343,7 @@ Remember from [section 2.2](#22-what-is-a-network-socket) that TCP is just a str
 ```text
   Tag byte         Meaning                                Body that follows                                    Total message size
   ───────────────  ─────────────────────────────────      ────────────────────────────────────────────         ──────────────────
-  0x01 (DATA)      "here's a data frame"                  63 bytes: the frame (header+payload+CRC)             64 bytes
+  0x01 (DATA)      "here's a data frame"                  65 bytes: the frame (header+payload+CRC)             66 bytes
   0x02 (ACK)       "I got frame number X"                 2 bytes: the sequence number, repeated twice         3 bytes
   0x03 (DONE)      "no more frames coming"                (nothing)                                            1 byte
   0x04 (DONE_ACK)  "OK, DONE received, you can exit"      (nothing)                                            1 byte
@@ -342,16 +356,21 @@ RecvMessage try_recv_message(socket, timeout_ms):
     set the receive timeout to 'timeout_ms'
     status, tag = read one byte
     if status != Ok:  return {status}        ← timed out or connection closed
-    (the tag has arrived, so the rest of this same message is already in flight right behind it — switch to blocking/no-timeout for the body)
+    (the tag has arrived — switch to blocking/no-timeout to finish its fixed-length body before reading any next tag)
     body = read exactly however-many-bytes-this-tag-implies
     return {Ok, tag, body}
 ```
 
-This "tag + fixed body length" idea is deliberately **outside** the simulated data frame — the PDF calls this "the channel is only a carrier": TCP's own byte stream framing must **never** be corrupted by the simulated channel, or a single simulated bit-flip could desynchronize the *entire rest of the connection* (the receiver would no longer be able to tell where any future message starts). Only the **inside** of a DATA message's 63-byte body, and the inside of an ACK message's 2-byte body, are ever candidates for simulated corruption.
+This "tag + fixed body length" idea is deliberately **outside** the simulated data frame: TCP carries the simulated messages, and the impairment function excludes their external tags. Corrupting a tag could desynchronize the *entire rest of the connection* (the receiver would no longer know where a future message starts). Only a DATA message's 65-byte body, including its four-byte CRC-32 FCS, and an ACK message's 2-byte body are candidates for simulated corruption.
+
+Experiment efficiency divides the number of useful file bytes by `frames_sent * 65`.
+This counts simulated DATA frames, including retransmissions; it excludes the
+external tags, ACK/control messages and TCP/IP headers. The sequence-number byte
+remains part of the 15-byte header and is protected by the CRC-32.
 
 ### 8.1 Why does the ACK body repeat the sequence number twice?
 
-A DATA frame has a full CRC-16 to detect corruption. An ACK is much smaller (just a sequence number), so instead of a full CRC, this project uses a cheap trick: **write the sequence number twice**. If the ACK channel corrupts one bit somewhere in those 3 bytes, there's a very high chance the two copies of the sequence number will no longer match each other — and `parse_ack_body()` checks exactly that:
+A DATA frame has a full CRC-32 to detect corruption. An ACK is much smaller (just a sequence number), so instead of a full CRC, this project uses a cheap trick: **write the sequence number twice**. If the ACK channel corrupts one bit in its 2-byte body (the tag is excluded), the two copies of the sequence number will no longer match each other — and `parse_ack_body()` checks exactly that:
 
 ```cpp
 std::optional<std::uint8_t> parse_ack_body(const std::vector<std::uint8_t>& body) {
@@ -470,7 +489,7 @@ The sender's loop (`run_stop_and_wait_sender` in `src/stop_and_wait.cpp`), for e
 for each frame of the file:
     acked = false
     while not acked:
-        serialize the frame into 63 bytes
+        serialize the frame into 65 bytes
         maybe corrupt/drop it (the simulated Channel)
         start the timer
         send it (unless it was dropped)
@@ -683,7 +702,7 @@ while base < total number of frames:
 ```text
 C++-basic/
 ├── include/                 ← the ".hpp" files: declarations (the "what exists" and "what does it look like from outside"), read by every .cpp file that uses that module
-│   ├── crc16.hpp             one function: compute a CRC-16 over some bytes
+│   ├── crc32.hpp             one function: compute a CRC-32 over some bytes
 │   ├── frame.hpp              the DataFrame struct + serialize/verify/split
 │   ├── channel.hpp            the simulated corruption/loss engine
 │   ├── socket.hpp              the RAII TCP socket wrapper
@@ -695,7 +714,7 @@ C++-basic/
 │   └── selective_repeat.hpp       declares the Selective Repeat sender/receiver
 │
 ├── src/                     ← the ".cpp" files: the actual implementations
-│   ├── crc16.cpp
+│   ├── crc32.cpp
 │   ├── frame.cpp
 │   ├── channel.cpp
 │   ├── socket.cpp
@@ -709,6 +728,10 @@ C++-basic/
 │
 ├── test_data/
 │   └── input.txt              a small sample file to transfer
+│
+├── tests/
+│   ├── frame_test.cpp         CRC-32 vectors, frame corruption, padding and wraparound
+│   └── test_transfers.py      18 real TCP transfers across all three protocols
 │
 ├── Makefile                   build instructions (see below)
 ├── run_demo.sh                interactive menu-driven demo runner
@@ -741,9 +764,13 @@ Every piece of this project's code lives inside `namespace basic_flow { ... }`. 
                                        build/sender    build/receiver
 ```
 
-Each `.cpp` file is compiled **separately** into a `.o` file first (this is why changing just one `.cpp` file and re-running `make` only recompiles *that* file, not everything — a real time-saver on larger projects), and then all the relevant `.o` files are **linked** together into the final executable. Both `sender` and `receiver` share almost all the same `.o` files (`crc16.o`, `frame.o`, `channel.o`, `socket.o`, `wire.o`, `timer.o`, and all three protocol `.o` files) — only `sender_main.o` vs. `receiver_main.o` differs between them.
+Each `.cpp` file is compiled **separately** into a `.o` file first (this is why changing just one `.cpp` file and re-running `make` only recompiles *that* file, not everything — a real time-saver on larger projects), and then all the relevant `.o` files are **linked** together into the final executable. Both `sender` and `receiver` share almost all the same `.o` files (`crc32.o`, `frame.o`, `channel.o`, `socket.o`, `wire.o`, `timer.o`, and all three protocol `.o` files) — only `sender_main.o` vs. `receiver_main.o` differs between them.
 
 The build flags (`-std=c++17 -Wall -Wextra -Wpedantic -Werror`) mean: "compile using the C++17 language standard, turn on extra warning categories, and treat every warning as a hard error" — this project compiles completely warning-free.
+
+`make test` runs the CRC/frame checks; `make test-integration` runs the real sender
+and receiver on empty, partial, full, wraparound and impaired inputs. The compiler
+also writes `.d` dependency files, so changing a shared header rebuilds its users.
 
 ---
 
@@ -799,7 +826,7 @@ See `C++-basic/README.md` for the full flag reference.
 | **Frame**                                       | One packaged unit of data sent over the (simulated) network — header + payload + CRC trailer.                                                                           |
 | **Payload**                                     | The actual useful data inside a frame (a 46-byte piece of the file).                                                                                                    |
 | **Header**                                      | The metadata in front of a frame's payload (addresses, length, sequence number).                                                                                        |
-| **Trailer**                                     | Metadata*after* the payload — here, just the CRC.                                                                                                                       |
+| **Trailer**                                     | Metadata after the payload: the four-byte CRC-32 FCS in this project's 65-byte DATA frame.                                                                                 |
 | **CRC (Cyclic Redundancy Check)**               | A small "fingerprint" number computed from data, used to detect corruption.                                                                                             |
 | **ACK (Acknowledgement)**                       | A small message sent back confirming "I received frame X successfully."                                                                                                 |
 | **Sequence number**                             | A counter (0-255, wrapping) identifying which piece of the file a frame carries.                                                                                        |

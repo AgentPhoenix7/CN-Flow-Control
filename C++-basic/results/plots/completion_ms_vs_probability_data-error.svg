@@ -8,15 +8,15 @@
 <line x1="70" y1="380.0" x2="730" y2="380.0" stroke="#eee" />
 <text x="62" y="384.0" text-anchor="end" font-size="10" font-family="sans-serif">0</text>
 <line x1="70" y1="314.0" x2="730" y2="314.0" stroke="#eee" />
-<text x="62" y="318.0" text-anchor="end" font-size="10" font-family="sans-serif">275</text>
+<text x="62" y="318.0" text-anchor="end" font-size="10" font-family="sans-serif">257</text>
 <line x1="70" y1="248.0" x2="730" y2="248.0" stroke="#eee" />
-<text x="62" y="252.0" text-anchor="end" font-size="10" font-family="sans-serif">551</text>
+<text x="62" y="252.0" text-anchor="end" font-size="10" font-family="sans-serif">515</text>
 <line x1="70" y1="182.0" x2="730" y2="182.0" stroke="#eee" />
-<text x="62" y="186.0" text-anchor="end" font-size="10" font-family="sans-serif">826</text>
+<text x="62" y="186.0" text-anchor="end" font-size="10" font-family="sans-serif">772</text>
 <line x1="70" y1="116.0" x2="730" y2="116.0" stroke="#eee" />
-<text x="62" y="120.0" text-anchor="end" font-size="10" font-family="sans-serif">1.1e+03</text>
+<text x="62" y="120.0" text-anchor="end" font-size="10" font-family="sans-serif">1.03e+03</text>
 <line x1="70" y1="50.0" x2="730" y2="50.0" stroke="#eee" />
-<text x="62" y="54.0" text-anchor="end" font-size="10" font-family="sans-serif">1.38e+03</text>
+<text x="62" y="54.0" text-anchor="end" font-size="10" font-family="sans-serif">1.29e+03</text>
 <line x1="70.0" y1="380" x2="70.0" y2="385" stroke="#333" />
 <text x="70.0" y="398" text-anchor="middle" font-size="10" font-family="sans-serif">0</text>
 <line x1="202.0" y1="380" x2="202.0" y2="385" stroke="#333" />
@@ -31,33 +31,33 @@
 <text x="730.0" y="398" text-anchor="middle" font-size="10" font-family="sans-serif">0.5</text>
 <text x="400" y="432" text-anchor="middle" font-size="12" font-family="sans-serif">probability</text>
 <text x="14" y="215" text-anchor="middle" font-size="12" font-family="sans-serif" transform="rotate(-90 14 215)">elapsed time (ms)</text>
-<path d="M70.0,379.4 L202.0,368.6 L334.0,327.1 L466.0,246.6 L598.0,94.0 L730.0,215.9" fill="none" stroke="#2563eb" stroke-width="2" />
-<circle cx="70.0" cy="379.4" r="4" fill="#2563eb" />
-<circle cx="202.0" cy="368.6" r="4" fill="#2563eb" />
-<circle cx="334.0" cy="327.1" r="4" fill="#2563eb" />
-<circle cx="466.0" cy="246.6" r="4" fill="#2563eb" />
-<circle cx="598.0" cy="94.0" r="4" fill="#2563eb" />
-<circle cx="730.0" cy="215.9" r="4" fill="#2563eb" />
+<path d="M70.0,379.9 L202.0,369.4 L334.0,330.4 L466.0,247.7 L598.0,93.0 L730.0,211.8" fill="none" stroke="#2563eb" stroke-width="2" />
+<circle cx="70.0" cy="379.9" r="4" fill="#2563eb" />
+<circle cx="202.0" cy="369.4" r="4" fill="#2563eb" />
+<circle cx="334.0" cy="330.4" r="4" fill="#2563eb" />
+<circle cx="466.0" cy="247.7" r="4" fill="#2563eb" />
+<circle cx="598.0" cy="93.0" r="4" fill="#2563eb" />
+<circle cx="730.0" cy="211.8" r="4" fill="#2563eb" />
 <line x1="588" y1="64" x2="610" y2="64" stroke="#2563eb" stroke-width="2" />
 <circle cx="599.0" cy="64.0" r="4" fill="#2563eb" />
 <text x="615" y="68" font-size="11" font-family="sans-serif">stop-and-wait</text>
-<path d="M70.0,374.5 L202.0,364.7 L334.0,314.4 L466.0,272.0 L598.0,253.8 L730.0,93.0" fill="none" stroke="#f97316" stroke-width="2" />
-<rect x="66.5" y="371.0" width="7" height="7" fill="#f97316" />
-<rect x="198.5" y="361.2" width="7" height="7" fill="#f97316" />
-<rect x="330.5" y="310.9" width="7" height="7" fill="#f97316" />
-<rect x="462.5" y="268.5" width="7" height="7" fill="#f97316" />
-<rect x="594.5" y="250.3" width="7" height="7" fill="#f97316" />
-<rect x="726.5" y="89.5" width="7" height="7" fill="#f97316" />
+<path d="M70.0,376.4 L202.0,365.6 L334.0,321.3 L466.0,271.7 L598.0,253.5 L730.0,93.6" fill="none" stroke="#f97316" stroke-width="2" />
+<rect x="66.5" y="372.9" width="7" height="7" fill="#f97316" />
+<rect x="198.5" y="362.1" width="7" height="7" fill="#f97316" />
+<rect x="330.5" y="317.8" width="7" height="7" fill="#f97316" />
+<rect x="462.5" y="268.2" width="7" height="7" fill="#f97316" />
+<rect x="594.5" y="250.0" width="7" height="7" fill="#f97316" />
+<rect x="726.5" y="90.1" width="7" height="7" fill="#f97316" />
 <line x1="588" y1="82" x2="610" y2="82" stroke="#f97316" stroke-width="2" />
 <rect x="595.5" y="78.5" width="7" height="7" fill="#f97316" />
 <text x="615" y="86" font-size="11" font-family="sans-serif">go-back-n</text>
-<path d="M70.0,372.3 L202.0,374.2 L334.0,357.1 L466.0,360.3 L598.0,294.8 L730.0,346.4" fill="none" stroke="#16a34a" stroke-width="2" />
-<polygon points="70.0,367.8 66.0,375.8 74.0,375.8" fill="#16a34a" />
-<polygon points="202.0,369.7 198.0,377.7 206.0,377.7" fill="#16a34a" />
-<polygon points="334.0,352.6 330.0,360.6 338.0,360.6" fill="#16a34a" />
+<path d="M70.0,376.3 L202.0,372.6 L334.0,362.0 L466.0,360.3 L598.0,294.9 L730.0,342.7" fill="none" stroke="#16a34a" stroke-width="2" />
+<polygon points="70.0,371.8 66.0,379.8 74.0,379.8" fill="#16a34a" />
+<polygon points="202.0,368.1 198.0,376.1 206.0,376.1" fill="#16a34a" />
+<polygon points="334.0,357.5 330.0,365.5 338.0,365.5" fill="#16a34a" />
 <polygon points="466.0,355.8 462.0,363.8 470.0,363.8" fill="#16a34a" />
-<polygon points="598.0,290.3 594.0,298.3 602.0,298.3" fill="#16a34a" />
-<polygon points="730.0,341.9 726.0,349.9 734.0,349.9" fill="#16a34a" />
+<polygon points="598.0,290.4 594.0,298.4 602.0,298.4" fill="#16a34a" />
+<polygon points="730.0,338.2 726.0,346.2 734.0,346.2" fill="#16a34a" />
 <line x1="588" y1="100" x2="610" y2="100" stroke="#16a34a" stroke-width="2" />
 <polygon points="599.0,95.5 595.0,103.5 603.0,103.5" fill="#16a34a" />
 <text x="615" y="104" font-size="11" font-family="sans-serif">selective-repeat</text>

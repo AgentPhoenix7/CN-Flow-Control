@@ -14,7 +14,7 @@ A Computer Networks course assignment implementing **Data Link Layer flow contro
 | **Go-Back-N** | *N* | resend the entire outstanding window |
 | **Selective Repeat** | *N* | resend only the missing/timed-out frame |
 
-TCP only carries the bytes — everything the assignment actually asks for is simulated at the application layer on top of it: frame **framing**, **CRC-16 error detection**, **bit corruption**, and **packet loss / excessive delay**, independently on both the DATA and ACK paths.
+TCP only carries the bytes — everything the assignment actually asks for is simulated at the application layer on top of it: frame **framing**, **CRC-32 error detection**, **bit corruption**, and **packet loss / excessive delay**, independently on both the DATA and ACK paths.
 
 > Based on `Assignment-2-CO2-FlowControl.pdf` (included in this repo).
 
@@ -31,6 +31,8 @@ TCP only carries the bytes — everything the assignment actually asks for is si
 
 ```bash
 make -C C++-basic all           # strict C++17 build -> C++-basic/build/{sender,receiver}
+make -C C++-basic test          # CRC-32 and four-byte-FCS frame regression checks
+make -C C++-basic test-integration  # 18 real TCP transfers, including wraparound and impairment
 make -C C++-basic experiments   # run the reproducible impairment-sweep experiment matrix
 make -C C++-basic results       # experiments + SVG plots + LaTeX/PDF report
 ```
@@ -47,7 +49,7 @@ See [`C++-basic/README.md`](C++-basic/README.md) for the full wire format, proto
 
 ![Sender and receiver exchange DATA and ACK frames through a simulated impairment channel riding on one TCP socket](docs/assets/architecture.svg)
 
-Each protocol layer (`stop_and_wait`, `go_back_n`, `selective_repeat`) is built from the same small set of shared modules — frame layout, CRC-16, channel impairment injection, socket I/O, and an RTT-adaptive timer — so the three implementations differ only in *windowing and retransmission policy*, which is exactly what the assignment asks you to compare.
+Each protocol layer (`stop_and_wait`, `go_back_n`, `selective_repeat`) is built from the same small set of shared modules — frame layout, CRC-32, channel impairment injection, socket I/O, and an RTT-adaptive timer — so the three implementations differ only in *windowing and retransmission policy*, which is exactly what the assignment asks you to compare.
 
 ## Documentation
 

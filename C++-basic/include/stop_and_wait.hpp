@@ -15,9 +15,9 @@ namespace basic_flow {
 RunStats run_stop_and_wait_sender(const TcpSocket& socket, const std::vector<std::uint8_t>& file_bytes,
                                    ChannelConfig data_channel_cfg, unsigned seed);
 
-/// Accepts frames in strict sequence order, discards corrupted/out-of-order frames
-/// (re-ACKing the last good delivery so a lost ACK does not stall the sender), and
-/// writes payload to 'output_path' as each frame is accepted.
+/// Verifies the four-byte CRC-32 FCS of each 65-byte DATA body; corrupted frames
+/// receive no ACK. Accepts frames in strict sequence order and re-ACKs the last
+/// good delivery on a valid duplicate. Writes each accepted payload only once.
 void run_stop_and_wait_receiver(const TcpSocket& socket, const std::string& output_path,
                                  ChannelConfig ack_channel_cfg, unsigned seed);
 

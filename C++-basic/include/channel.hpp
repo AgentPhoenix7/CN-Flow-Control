@@ -18,6 +18,8 @@ struct ChannelConfig {
 /// Applies one path's configured probabilities to outgoing message bodies. Each
 /// direction (sender's DATA path, receiver's ACK path) owns its own Channel and RNG
 /// state so the two paths never share randomness.
+/// DATA bodies contain all 65 simulated-frame bytes, including the four-byte CRC-32
+/// FCS. ACK bodies contain two repeated sequence bytes. External tags are excluded.
 class Channel {
 public:
   Channel(ChannelConfig config, unsigned seed);

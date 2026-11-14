@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "crc16.hpp"
+#include "crc32.hpp"
 
 namespace basic_flow {
 
@@ -17,7 +17,10 @@ std::vector<std::uint8_t> serialize(const DataFrame& frame) {
   body.push_back(frame.seq);
   for (auto b : frame.payload) body.push_back(b);
 
-  std::uint16_t crc = crc16_compute(body);
+  // Protect all 61 header/payload bytes; append the four-byte FCS, high byte first.
+  std::uint32_t crc = crc32_compute(body);
+  body.push_back(static_cast<std::uint8_t>(crc >> 24));
+  body.push_back(static_cast<std::uint8_t>(crc >> 16));
   body.push_back(static_cast<std::uint8_t>(crc >> 8));
   body.push_back(static_cast<std::uint8_t>(crc & 0xFF));
   return body;
@@ -26,10 +29,13 @@ std::vector<std::uint8_t> serialize(const DataFrame& frame) {
 bool deserialize_and_verify(const std::vector<std::uint8_t>& body, DataFrame& out) {
   if (body.size() != FRAME_BODY_LEN) return false;
 
+  // The final four bytes are the FCS, excluded from the CRC-covered input.
   std::vector<std::uint8_t> covered(body.begin(), body.end() - static_cast<long>(CRC_LEN));
-  std::uint16_t received_crc = static_cast<std::uint16_t>(
-      (static_cast<std::uint16_t>(body[FRAME_BODY_LEN - 2]) << 8) | body[FRAME_BODY_LEN - 1]);
-  if (crc16_compute(covered) != received_crc) return false;
+  std::uint32_t received_crc = 0;
+  for (std::size_t i = FRAME_BODY_LEN - CRC_LEN; i < FRAME_BODY_LEN; ++i) {
+    received_crc = (received_crc << 8) | body[i];
+  }
+  if (crc32_compute(covered) != received_crc) return false;
 
   std::size_t pos = 0;
   for (auto& b : out.src_mac) b = body[pos++];
@@ -80,25 +86,24 @@ append lower byte of length
 append sequence number
 append payload
 
-crc = calculate CRC of body
+crc = calculate CRC-32/ISO-HDLC over the 15-byte header and 46-byte padded payload
 
-append upper byte of crc
-append lower byte of crc
+append crc as four bytes, most significant byte first
 
-return body
+return the 65-byte simulated frame body (the external tag is added separately)
 
 
 DESERIALIZE AND VERIFY FRAME:
 
-if body size is not correct:
+if body size is not 65 bytes:
   return false
 
-take all bytes except last 2 as CRC-covered data
+take all bytes except last 4 as CRC-covered data
 
 received_crc =
-  combine second-last byte and last byte
+  combine last four bytes, most significant byte first
 
-calculated_crc = calculate CRC of covered data
+calculated_crc = calculate CRC-32/ISO-HDLC of the 61 covered bytes
 
 if calculated_crc != received_crc:
   return false
@@ -131,6 +136,8 @@ while offset < file size:
   take = minimum(max payload size, remaining file size)
 
   frame.length = take
+
+  leave all unused bytes of the 46-byte payload zero-initialized
 
   copy "take" bytes from file into payload
 

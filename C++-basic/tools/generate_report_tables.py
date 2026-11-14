@@ -63,6 +63,10 @@ def write_params(rows: list[dict], out_path: pathlib.Path) -> None:
         rf"\newcommand{{\NumProbabilities}}{{5}}",
         rf"\newcommand{{\NumPaths}}{{4}}",
     ]
+    for protocol, macro in zip(PROTOCOLS, ("SWBaselineTime", "GBNBaselineTime", "SRBaselineTime")):
+        base = [r for r in rows if r["protocol"] == protocol and r["impairment_path"] == "baseline"]
+        mean_ms = statistics.mean(r["elapsed_ms"] for r in base)
+        lines.append(rf"\newcommand{{\{macro}}}{{{mean_ms:.3f}}}")
     out_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 

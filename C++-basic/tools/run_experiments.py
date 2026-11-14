@@ -3,14 +3,13 @@
 protocols, and a matrix of channel-impairment cases, recording one row of
 metrics per run to results/experiments.csv.
 
-Matrix design (one-factor-at-a-time, the same idea the full C++/ project's own
-experiment matrix uses): for each input file and each protocol, run one clean
+Matrix design (one-factor-at-a-time): for each input file and each protocol, run one clean
 baseline (0% error/loss on both paths), then sweep each of the four impairment
 paths (data-error, data-loss, ack-error, ack-loss) through probabilities
 0.1-0.5 while holding the other three paths at 0. The same (input file, path,
 probability) combination uses the same channel RNG seeds across all three
-protocols, so any difference between protocols in the results is caused by
-protocol logic, not by different protocols getting different random luck.
+protocols. Real timing and protocol-dependent RNG consumption can still
+affect comparisons; equal seeds do not guarantee identical per-frame events.
 
 Every run's reconstructed output is required to be byte-identical to the
 input; the whole matrix aborts (with the CSV rows written so far left intact)
@@ -38,8 +37,9 @@ BUILD_DIR = PROJECT_DIR / "build"
 SENDER = BUILD_DIR / "sender"
 RECEIVER = BUILD_DIR / "receiver"
 
-# header(15) + payload(46) + CRC-16(2), from include/frame.hpp's FRAME_BODY_LEN.
-FRAME_WIRE_BYTES = 63
+# header(15) + payload(46) + CRC-32(4), from include/frame.hpp's FRAME_BODY_LEN.
+# This counts the simulated DATA frame only, excluding the external one-byte tag.
+FRAME_WIRE_BYTES = 65
 
 PROTOCOLS = ["stop-and-wait", "go-back-n", "selective-repeat"]
 IMPAIRMENT_PATHS = ["data-error", "data-loss", "ack-error", "ack-loss"]
@@ -190,7 +190,7 @@ def main() -> None:
 
     start = time.time()
     with args.output.open("w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer = csv.DictWriter(f, fieldnames=fieldnames, lineterminator="\n")
         writer.writeheader()
 
         port = args.base_port

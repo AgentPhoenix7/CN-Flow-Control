@@ -8,7 +8,8 @@ namespace basic_flow {
 
 namespace {
 
-// Returns the expected body length for a given tag, or throws if the tag is unknown.
+// Fixed body sizes exclude the external tag: DATA=65 (with CRC-32), ACK=2,
+// DONE/DONE_ACK=0. Unknown tags cannot be decoded and are rejected.
 std::size_t body_length_for_tag(const std::uint8_t tag) {
   switch (tag) {
     case TAG_DATA:
@@ -28,6 +29,7 @@ std::size_t body_length_for_tag(const std::uint8_t tag) {
 // Sends one tagged message (tag byte followed by its body, if any).
 void send_message(const TcpSocket& socket, const std::uint8_t tag, const std::vector<std::uint8_t>& body) {
   // The tag is always sent, even if the body is empty.
+  // DATA is 1 tag + 65 frame bytes = 66 bytes; the tag is outside CRC protection.
   // The body length is fixed for each tag, so the receiver knows exactly how many
   // bytes to read after the tag. This is a simple framing protocol on top of TCP.
   std::vector<std::uint8_t> out;
@@ -46,9 +48,8 @@ RecvMessage try_recv_message(const TcpSocket& socket, const int timeout_ms) {
   msg.status = socket.recv_timed_byte(msg.tag);
   if (msg.status != RecvStatus::Ok) return msg;
 
-  // The tag has arrived, so the peer's single send_exact() write for this message is
-  // already in flight on this TCP connection; block for the rest instead of racing
-  // the same short timeout against it.
+  // Once a tag arrives, finish its fixed-length body with a blocking read so a
+  // timeout cannot leave the next receive starting in the middle of this message.
   socket.set_recv_timeout_ms(0);
   // Determine the expected body length from the received tag and read exactly
   // that many bytes.
@@ -75,7 +76,7 @@ std::optional<std::uint8_t> parse_ack_body(const std::vector<std::uint8_t>& body
 GET BODY LENGTH:
 
 if tag == DATA:
-  return frame body length
+  return 65 (15-byte header + 46-byte payload + four-byte CRC-32 FCS)
 
 if tag == ACK:
   return 2
@@ -97,6 +98,8 @@ create empty output
 
 append message tag
 append message body
+
+DATA is 66 bytes including tag; ACK is 3; DONE and DONE_ACK are 1 each
 
 send all bytes through TCP socket
 */

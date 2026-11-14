@@ -19,6 +19,7 @@ RunStats run_go_back_n_sender(const TcpSocket& socket, const std::vector<std::ui
 /// Receiver window is fixed at 1: only the next in-order frame is accepted; anything
 /// else (out-of-order or a duplicate) is discarded and re-ACKed with the last
 /// in-order sequence so a lost cumulative ACK does not stall the sender.
+/// Each 65-byte DATA body must pass its four-byte CRC-32 FCS check before any ACK.
 void run_go_back_n_receiver(const TcpSocket& socket, const std::string& output_path,
                              ChannelConfig ack_channel_cfg, unsigned seed);
 
