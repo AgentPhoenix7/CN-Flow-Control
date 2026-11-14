@@ -8,6 +8,7 @@
 
 namespace basic_flow {
 
+/// Message tags
 enum : std::uint8_t {
   TAG_DATA = 0x01,
   TAG_ACK = 0x02,

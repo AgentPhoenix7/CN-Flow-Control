@@ -8,7 +8,7 @@ namespace basic_flow {
 
 namespace {
 
-std::size_t body_length_for_tag(std::uint8_t tag) {
+std::size_t body_length_for_tag(const std::uint8_t tag) {
   switch (tag) {
     case TAG_DATA:
       return FRAME_BODY_LEN;
@@ -24,7 +24,7 @@ std::size_t body_length_for_tag(std::uint8_t tag) {
 
 }  // namespace
 
-void send_message(const TcpSocket& socket, std::uint8_t tag, const std::vector<std::uint8_t>& body) {
+void send_message(const TcpSocket& socket, const std::uint8_t tag, const std::vector<std::uint8_t>& body) {
   std::vector<std::uint8_t> out;
   out.reserve(1 + body.size());
   out.push_back(tag);
@@ -32,7 +32,7 @@ void send_message(const TcpSocket& socket, std::uint8_t tag, const std::vector<s
   socket.send_exact(out);
 }
 
-RecvMessage try_recv_message(const TcpSocket& socket, int timeout_ms) {
+RecvMessage try_recv_message(const TcpSocket& socket, const int timeout_ms) {
   socket.set_recv_timeout_ms(timeout_ms);
   RecvMessage msg;
   msg.status = socket.recv_timed_byte(msg.tag);
