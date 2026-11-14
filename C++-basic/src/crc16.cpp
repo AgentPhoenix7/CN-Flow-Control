@@ -3,12 +3,13 @@
 namespace basic_flow {
 
 std::uint16_t crc16_compute(const std::vector<std::uint8_t>& data) {
-  constexpr std::uint16_t kPoly = 0x8005;
   std::uint16_t crc = 0x0000;
-  for (std::uint8_t byte : data) {
+  for (const std::uint8_t byte : data) {
     crc = static_cast<std::uint16_t>(crc ^ (static_cast<std::uint16_t>(byte) << 8));
     for (int bit = 0; bit < 8; ++bit) {
-      if (crc & 0x8000) {
+      if (crc & 0x8000)
+      {
+        constexpr std::uint16_t kPoly = 0x8005;
         crc = static_cast<std::uint16_t>((crc << 1) ^ kPoly);
       } else {
         crc = static_cast<std::uint16_t>(crc << 1);

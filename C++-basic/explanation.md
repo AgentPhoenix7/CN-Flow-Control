@@ -131,7 +131,7 @@ A computer can't generate *truly* random numbers on demand cheaply, so it uses a
 
 ## 3. The problem this project solves
 
-The assignment (see `Assignment-2-CO2-FlowControl.pdf`) asks for a **Sender** program and a **Receiver** program that transfer a file over a socket, where the "physical wire" between them is deliberately unreliable (bytes can get corrupted, frames can get lost/excessively delayed), and yet the receiver must still end up with a **perfect copy** of the file. Three specific strategies for handling this are required, differing in "how many frames can be in flight before you must stop and wait for confirmation":
+The assignment (see [Assignment-2-CO2-FlowControl.pdf](../Assignment-2-CO2-FlowControl.pdf)) asks for a **Sender** program and a **Receiver** program that transfer a file over a socket, where the "physical wire" between them is deliberately unreliable (bytes can get corrupted, frames can get lost/excessively delayed), and yet the receiver must still end up with a **perfect copy** of the file. Three specific strategies for handling this are required, differing in "how many frames can be in flight before you must stop and wait for confirmation":
 
 | Protocol         | Frames the sender may have "in flight" (unacknowledged) at once |
 | ---------------- | --------------------------------------------------------------- |
@@ -145,7 +145,7 @@ More frames in flight generally means faster transfers (less idle waiting), but 
 
 ## 4. The data frame: how one chunk of the file is packaged
 
-Every 46-byte piece of the file gets wrapped into a **frame** before it's sent. Here is the exact byte layout (this matches `include/frame.hpp`):
+Every 46-byte piece of the file gets wrapped into a **frame** before it's sent. Here is the exact byte layout (this matches [include/frame.hpp](./include/frame.hpp)):
 
 ```text
   byte offset:   0         6         12    14   15                        61 62 63
@@ -204,7 +204,7 @@ A **CRC (Cyclic Redundancy Check)** is a small number computed from a larger blo
    and send the whole thing            (mismatched CRC = discard the frame, don't write its payload, don't ACK it)
 ```
 
-### 5.2 How the number is actually computed (`crc16_compute` in `src/crc16.cpp`)
+### 5.2 How the number is actually computed (`crc16_compute` in [src/crc16.cpp](./src/crc16.cpp))
 
 The algorithm processes the data **one bit at a time**, maintaining a running 16-bit value (`crc`), starting at 0. For every bit of every byte:
 
@@ -222,7 +222,7 @@ The algorithm processes the data **one bit at a time**, maintaining a running 16
                crc = (crc << 1)
 ```
 
-Why does this detect corruption so reliably? Because a single flipped bit anywhere in the input changes the running `crc` value in a way that (for a well-chosen polynomial like `0x8005`) essentially never produces the same final CRC as the original — the "collision" probability for a random single-bit or small-burst error is extremely low. This project consistently uses the **same** CRC-16 (polynomial `0x8005`, starting value 0) on both the sender (to *compute* the trailer) and the receiver (to *recompute* it and compare) — see `deserialize_and_verify` in `src/frame.cpp`.
+Why does this detect corruption so reliably? Because a single flipped bit anywhere in the input changes the running `crc` value in a way that (for a well-chosen polynomial like `0x8005`) essentially never produces the same final CRC as the original — the "collision" probability for a random single-bit or small-burst error is extremely low. This project consistently uses the **same** CRC-16 (polynomial `0x8005`, starting value 0) on both the sender (to *compute* the trailer) and the receiver (to *recompute* it and compare) — see `deserialize_and_verify` in [src/frame.cpp](./src/frame.cpp).
 
 ### 5.3 What happens on a CRC mismatch
 
@@ -232,7 +232,7 @@ If the receiver recomputes the CRC and it doesn't match the CRC that arrived in 
 
 ## 6. The simulated channel: manufacturing bad luck on purpose
 
-Because this project runs on `127.0.0.1` (loopback), the network is actually extremely reliable — bytes essentially never really get corrupted or lost in transit. But the whole point of the assignment is to test what Stop-and-Wait / Go-Back-N / Selective Repeat do **when things go wrong**. So the project **fakes** bad luck on purpose, using the `Channel` class (`include/channel.hpp`, `src/channel.cpp`):
+Because this project runs on `127.0.0.1` (loopback), the network is actually extremely reliable — bytes essentially never really get corrupted or lost in transit. But the whole point of the assignment is to test what Stop-and-Wait / Go-Back-N / Selective Repeat do **when things go wrong**. So the project **fakes** bad luck on purpose, using the `Channel` class ([include/channel.hpp](./include/channel.hpp), [src/channel.cpp](./src/channel.cpp)):
 
 ```text
    Outgoing frame body (the 63 bytes about to be sent)
@@ -277,7 +277,7 @@ Two independent probabilities control this, per direction:
 
 ## 7. Sockets: the actual network pipe
 
-`include/socket.hpp` / `src/socket.cpp` wrap the low-level, C-style POSIX socket API (functions like `socket()`, `bind()`, `listen()`, `accept()`, `connect()`, `send()`, `recv()` — these come from the operating system, not from this project) into a small C++ class called `TcpSocket`.
+[include/socket.hpp](./include/socket.hpp) / [src/socket.cpp](./src/socket.cpp) wrap the low-level, C-style POSIX socket API (functions like `socket()`, `bind()`, `listen()`, `accept()`, `connect()`, `send()`, `recv()` — these come from the operating system, not from this project) into a small C++ class called `TcpSocket`.
 
 ### 7.1 Why wrap it in a class at all?
 

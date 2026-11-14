@@ -2,7 +2,7 @@
 
 namespace basic_flow {
 
-Channel::Channel(ChannelConfig config, unsigned seed) : config_(config), rng_(seed) {}
+Channel::Channel(const ChannelConfig config, const unsigned seed) : config_(config), rng_(seed) {}
 
 bool Channel::apply(std::vector<std::uint8_t>& body) {
   std::uniform_real_distribution<double> uniform(0.0, 1.0);
