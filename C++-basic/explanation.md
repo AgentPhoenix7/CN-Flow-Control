@@ -324,7 +324,7 @@ Two reasons, both important C++ habits:
 
 ## 8. The "wire protocol": how messages don't get confused with each other
 
-Remember from [section 2.2](#22-what-is-a-network-socket) that TCP is just a stream of bytes with **no built-in concept of "messages."** If the sender writes "a DATA frame" and then later "a DONE signal," the receiver just sees one long stream of bytes and has to figure out on its own where one message ends and the next begins. `include/wire.hpp` / `src/wire.cpp` solve this with a simple scheme: **every message starts with one "tag" byte that says what kind of message it is, and each tag has a fixed, known body length.**
+Remember from [section 2.2](#22-what-is-a-network-socket) that TCP is just a stream of bytes with **no built-in concept of "messages."** If the sender writes "a DATA frame" and then later "a DONE signal," the receiver just sees one long stream of bytes and has to figure out on its own where one message ends and the next begins. [include/wire.hpp](./include/wire.hpp) / [src/wire.cpp](./src/wire.cpp) solve this with a simple scheme: **every message starts with one "tag" byte that says what kind of message it is, and each tag has a fixed, known body length.**
 
 ```text
   Tag byte         Meaning                                Body that follows                                    Total message size
